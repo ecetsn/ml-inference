@@ -15,6 +15,11 @@ harness/mnist/__pycache__/
 *.o
 *.obj
 
+# Virtual environments
+bmvenv/
+bmvenv/*
+git clean -fdX
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -31,7 +36,6 @@ harness/mnist/__pycache__/
 # Compiled Static libraries
 *.lai
 *.la
-*.a
 *.lib
 
 # Executables
