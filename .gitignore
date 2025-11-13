@@ -5,6 +5,7 @@ third_party/
 measurements/
 harness/__pycache__/
 harness/mnist/__pycache__/
+harness/naive_mlp/*
 
 # Prerequisites
 *.d
