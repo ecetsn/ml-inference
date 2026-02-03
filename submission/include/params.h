@@ -53,7 +53,7 @@ public:
             throw std::invalid_argument("Invalid instance size");
         }
 
-        const int batchSizes[] = {1, 15, 1000, 10000};
+        const int batchSizes[] = {1, 100, 1000, 10000};
         batchSize    = batchSizes[int(_size)];
     }
 
