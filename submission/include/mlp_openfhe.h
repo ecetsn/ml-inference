@@ -17,8 +17,8 @@
 #include "openfhe.h"
 
 using namespace lbcrypto;
-using CiphertextT = ConstCiphertext<DCRTPoly>;
-using MutableCiphertextT = Ciphertext<DCRTPoly>;
+using CiphertextT = Ciphertext<DCRTPoly>;
+using ConstCiphertextT = ConstCiphertext<DCRTPoly>;
 using CCParamsT = CCParams<CryptoContextCKKSRNS>;
 using CryptoContextT = CryptoContext<DCRTPoly>;
 using EvalKeyT = EvalKey<DCRTPoly>;
@@ -27,8 +27,9 @@ using PrivateKeyT = PrivateKey<DCRTPoly>;
 using PublicKeyT = PublicKey<DCRTPoly>;
 
 
-std::vector<MutableCiphertextT> mnist(CryptoContextT cc, 
+
+std::vector<CiphertextT> mnist(CryptoContextT cc, 
     std::vector<float> v0, std::vector<float> v1, std::vector<float> v2, std::vector<float> v3, 
-    std::vector<MutableCiphertextT> v4);
+    std::vector<CiphertextT> v4);
 
 #endif  // ifndef MLP_OPENFHE_H_

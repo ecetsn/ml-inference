@@ -22,8 +22,6 @@
 
 using namespace lbcrypto;
 
-using MutableCiphertextT = Ciphertext<DCRTPoly>;
-
 
 int main(int argc, char* argv[]){
 
@@ -92,7 +90,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    std::vector<MutableCiphertextT> ctxt;
+    std::vector<CiphertextT> ctxt;
     fs::create_directories(prms.ctxtdowndir());
     std::cout << "         [server] run encrypted MNIST inference" << std::endl;
     for (size_t i = 0; i < prms.getBatchSize(); ++i) {

@@ -59,7 +59,7 @@ void read_eval_keys(const InstanceParams& prms, CryptoContextT cc) {
 }
 
 
-std::vector<MutableCiphertextT> mlp_encrypt(CryptoContext<DCRTPoly> cc, std::vector<float> v0, PublicKey<DCRTPoly> pk) {
+std::vector<CiphertextT> mlp_encrypt(CryptoContextT cc, std::vector<float> v0, PublicKeyT pk) {
   [[maybe_unused]] size_t v1 = 0;
   std::vector<float> v2(1024, 0);
   [[maybe_unused]] int32_t v3 = 0;
@@ -82,16 +82,16 @@ std::vector<MutableCiphertextT> mlp_encrypt(CryptoContext<DCRTPoly> cc, std::vec
   auto pt_filled = v13;
   pt_filled.clear();
   pt_filled.reserve(pt_filled_n);
-  for (uint32_t i = 0; i < pt_filled_n; ++i) {
+  for (size_t i = 0; i < pt_filled_n; ++i) {
     pt_filled.push_back(v13[i % v13.size()]);
   }
   auto pt = cc->MakeCKKSPackedPlaintext(pt_filled);
   const auto& ct = cc->Encrypt(pk, pt);
-  std::vector<MutableCiphertextT> ct_vec = {ct};
-  return ct_vec;
+  const std::vector<CiphertextT> v14 = {ct};
+  return v14;
 }
 
-std::vector<float> mlp_decrypt(CryptoContextT cc, std::vector<MutableCiphertextT> v0, PrivateKeyT sk) {
+std::vector<float> mlp_decrypt(CryptoContextT cc, std::vector<CiphertextT> v0, PrivateKeyT sk) {
   [[maybe_unused]] size_t v1 = 0;
   [[maybe_unused]] int32_t v2 = 1024;
   [[maybe_unused]] int32_t v3 = 16;

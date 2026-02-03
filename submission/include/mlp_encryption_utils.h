@@ -18,8 +18,8 @@
 #include "params.h"
 
 using namespace lbcrypto;
-using CiphertextT = ConstCiphertext<DCRTPoly>;
-using MutableCiphertextT = Ciphertext<DCRTPoly>;
+using CiphertextT = Ciphertext<DCRTPoly>;
+using ConstCiphertextT = ConstCiphertext<DCRTPoly>;
 using CCParamsT = CCParams<CryptoContextCKKSRNS>;
 using CryptoContextT = CryptoContext<DCRTPoly>;
 using EvalKeyT = EvalKey<DCRTPoly>;
@@ -38,8 +38,8 @@ struct Score {
   float score[MNIST_LABEL_DIM];
 };
 
-std::vector<MutableCiphertextT> mlp_encrypt(CryptoContext<DCRTPoly> cc, std::vector<float> v0, PublicKey<DCRTPoly> pk);
-std::vector<float> mlp_decrypt(CryptoContextT cc, std::vector<MutableCiphertextT> v0, PrivateKeyT sk);
+std::vector<CiphertextT> mlp_encrypt(CryptoContextT cc, std::vector<float> v0, PublicKeyT pk);
+std::vector<float> mlp_decrypt(CryptoContextT cc, std::vector<CiphertextT> v0, PrivateKeyT sk);
 PublicKey<DCRTPoly> read_public_key(const InstanceParams& prms);
 PrivateKey<DCRTPoly> read_secret_key(const InstanceParams& prms);
 CryptoContext<DCRTPoly> read_crypto_context(const InstanceParams& prms);

@@ -16,7 +16,7 @@
 set -euo pipefail
 
 # -------- configurable -------------------------------------------------
-TAG="v1.3.1"                     # bump only after CI/Docker update
+TAG="v1.4.0"                     # bump only after CI/Docker update
 ROOT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 SRC_DIR="$ROOT_DIR/third_party/openfhe-src"          # git clone here
 INSTALL_DIR="$ROOT_DIR/third_party/openfhe"          # cmake --install here
