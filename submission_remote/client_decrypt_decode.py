@@ -1,6 +1,6 @@
 import pickle
 import sys
-from lattica_query import worker_api
+from lattica_query.serialization import api_serialization_utils
 import lattica_query.query_toolkit as toolkit_interface
 
 import submission_utils
@@ -11,7 +11,7 @@ sk = pickle.load(open(local_file_paths.PATH_SK, "rb"))
 
 ct_res = pickle.load(open(local_file_paths.get_ct_download_path("batch"), "rb"))
 res = toolkit_interface.dec(context, sk, ct_res, False)
-res = worker_api.load_proto_tensor(res)
+res = api_serialization_utils.load_proto_tensor(res)
 if res.ndim == 1:
     res = res.unsqueeze(0)
 results = res.argmax(axis=1).tolist()

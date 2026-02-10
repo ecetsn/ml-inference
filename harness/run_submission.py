@@ -82,7 +82,6 @@ def main():
 
     # Run steps 4-10 multiple times if requested
     for run in range(num_runs):
-        run_path = params.measuredir() / f"results-{run+1}.json"
         if num_runs > 1:
             print(f"\n         [harness] Run {run+1} of {num_runs}")
 
@@ -142,8 +141,10 @@ def main():
             utils.log_step(10.2, "Harness: Run quality check")
 
         # 11. Store measurements
+        run_path = params.measuredir() / f"results-{run+1}.json"
         run_path.parent.mkdir(parents=True, exist_ok=True)
-        utils.save_run(run_path, size)
+        submission_report_path = io_dir / "server_reported_steps.json"
+        utils.save_run(run_path, submission_report_path, size)
 
     print(f"\nAll steps completed for the {instance_name(size)} inference!")
 

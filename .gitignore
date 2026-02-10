@@ -46,6 +46,7 @@ harness/mnist/__pycache__/
 .DS_Store
 .idea/
 .vscode/
+.venv/
 
 # Virtual environments
 virtualenv
