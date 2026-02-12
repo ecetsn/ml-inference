@@ -90,6 +90,7 @@ class TextFormat:
     YELLOW = "\033[33m"
     BLUE = "\033[34m"
     RED = "\033[31m"
+    PURPLE = "\033[35m"
     RESET = "\033[0m"
 
 def log_step(step_num: int, step_name: str, start: bool = False):
@@ -144,11 +145,19 @@ def human_readable_size(n: int):
         n /= 1024
     return f"{n:.1f}P"
 
-def save_run(path: Path, size: int = 0):
+def save_run(path: Path, submission_report_path: Path, size: int = 0):
     global _timestamps
     global _timestampsStr
     global _bandwidth
     global _model_quality
+
+    _timestampsRemote = {}
+    if submission_report_path.exists():
+        with open(submission_report_path, "r") as f:
+            server_reported_times = json.load(f)
+            for step_name, time_str in server_reported_times.items():
+                _timestampsRemote[step_name] = f"{time_str}s"
+                print(f"{TextFormat.PURPLE}         [submission] {step_name}: {time_str}s{TextFormat.RESET}")
 
     if size == 0:
         json.dump({

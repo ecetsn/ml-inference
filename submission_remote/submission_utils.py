@@ -48,6 +48,8 @@ class LocalFilePaths:
         self.CT_DOWNLOAD_DIR = self.IO_DIR / "ciphertexts_download"
         self.CT_DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+        self.SERVER_TIMES_PATH = self.IO_DIR / "server_reported_steps.json"
+
     def get_ct_upload_path(self, i):
         return self.CT_UPLOAD_DIR / f"cipher_input_{i}.pkl"
 
