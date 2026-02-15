@@ -55,6 +55,7 @@ include_directories( ${OpenFHE_INCLUDE}/binfhe )
 ### add directories for other OpenFHE modules as needed for your project
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
 
 link_directories( ${OpenFHE_LIBDIR} )
 link_directories( ${OPENMP_LIBRARIES} )

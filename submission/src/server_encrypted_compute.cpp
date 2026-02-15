@@ -21,8 +21,10 @@
 #include <chrono>
 #include <fstream>
 #include <iomanip>
+#include <nlohmann/json.hpp>
 
 using namespace lbcrypto;
+using json = nlohmann::json;
 
 
 int main(int argc, char* argv[]){
@@ -97,8 +99,7 @@ int main(int argc, char* argv[]){
     std::cout << "         [server] run encrypted MNIST inference" << std::endl;
     
     double total_encrypted_computation_seconds = 0.0;
-    std::ofstream json_file(prms.server_reported_steps_file());
-    json_file << "{\n";
+    json steps_json = json::object();
     
     std::cout << "         [server] Run encrypted MNIST inference" << std::endl;
     for (size_t i = 0; i < prms.getBatchSize(); ++i) {
@@ -119,14 +120,12 @@ int main(int argc, char* argv[]){
         total_encrypted_computation_seconds += duration_seconds;
         std::cout << "         [server] Execution time for ciphertext " << i << " : " 
                 << duration_seconds << " seconds" << std::endl;
-        json_file << "  \"Encrypted computation-" << i << "\": " << std::fixed << std::setprecision(2) 
-                  << duration_seconds << ",\n";
+        steps_json["Encrypted computation-" + std::to_string(i)] = duration_seconds;
     }
 
-    json_file << "  \"Total\": " << std::fixed << std::setprecision(2) 
-                << total_encrypted_computation_seconds << "\n";
-    json_file << "}\n";
-    json_file.close();
+    steps_json["Total"] = total_encrypted_computation_seconds;
+    std::ofstream json_file(prms.server_reported_steps_file());
+    json_file << std::setw(2) << steps_json << "\n";
 
     return 0;
 }
