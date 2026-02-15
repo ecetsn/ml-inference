@@ -151,26 +151,30 @@ def save_run(path: Path, submission_report_path: Path, size: int = 0):
     global _bandwidth
     global _model_quality
 
+    _timestampsStr["Total"] = f"{round(sum(_timestamps.values()), 4)}s"
     _timestampsRemote = {}
     if submission_report_path.exists():
         with open(submission_report_path, "r") as f:
             server_reported_times = json.load(f)
+            print(f"{TextFormat.GREEN}         [submission] Server reported steps: {server_reported_times}{TextFormat.RESET}")
             for step_name, time_str in server_reported_times.items():
                 _timestampsRemote[step_name] = f"{time_str}s"
                 print(f"{TextFormat.PURPLE}         [submission] {step_name}: {time_str}s{TextFormat.RESET}")
+    else:
+        print(f"{TextFormat.PURPLE}         [harness] Note: Submitters can specify Server reported steps file at {submission_report_path}{TextFormat.RESET}")
 
     if size == 0:
         json.dump({
-            "total_latency_ms": round(sum(_timestamps.values()), 4),
-            "per_stage": _timestampsStr,
-            "bandwidth": _bandwidth,
+            "Timing": _timestampsStr,
+            "Bandwidth": _bandwidth,
+            "Server Reported": _timestampsRemote,
         }, open(path,"w"), indent=2)
     else:
         json.dump({
-            "total_latency_ms": round(sum(_timestamps.values()), 4),
-            "per_stage": _timestampsStr,
-            "bandwidth": _bandwidth,
-            "mnist_model_quality" : _model_quality,
+            "Timing": _timestampsStr,
+            "Bandwidth": _bandwidth,
+            "Quality" : _model_quality,
+            "Server Reported": _timestampsRemote,
         }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")

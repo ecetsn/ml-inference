@@ -19,6 +19,8 @@
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <chrono>
+#include <fstream>
+#include <iomanip>
 
 using namespace lbcrypto;
 
@@ -92,6 +94,12 @@ int main(int argc, char* argv[]){
 
     std::vector<CiphertextT> ctxt;
     fs::create_directories(prms.ctxtdowndir());
+    std::cout << "         [server] run encrypted MNIST inference" << std::endl;
+    
+    double total_encrypted_computation_seconds = 0.0;
+    std::ofstream json_file(prms.server_reported_steps_file());
+    json_file << "{\n";
+    
     std::cout << "         [server] Run encrypted MNIST inference" << std::endl;
     for (size_t i = 0; i < prms.getBatchSize(); ++i) {
         auto input_ctxt_path = prms.ctxtupdir()/("cipher_input_" + std::to_string(i) + ".bin");
@@ -102,13 +110,23 @@ int main(int argc, char* argv[]){
         auto start = std::chrono::high_resolution_clock::now();
         auto ctxtResults = mnist(cc, fc1_weight, fc1_bias, fc2_weight, fc2_bias, ctxt);
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-        std::cout << "         [server] Execution time for ciphertext " << i << " : " 
-                << duration.count() << " seconds" << std::endl;
-        
         auto result_ctxt_path = prms.ctxtdowndir()/("cipher_result_" + std::to_string(i) + ".bin");
-        Serial::SerializeToFile(result_ctxt_path, ctxtResults, SerType::BINARY);
+        Serial::SerializeToFile(result_ctxt_path, ctxtResult, SerType::BINARY);
+
+        // Record the time taken for this encrypted computation step.
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        double duration_seconds = duration.count() / 1000.0;
+        total_encrypted_computation_seconds += duration_seconds;
+        std::cout << "         [server] Execution time for ciphertext " << i << " : " 
+                << duration_seconds << " seconds" << std::endl;
+        json_file << "  \"Encrypted computation-" << i << "\": " << std::fixed << std::setprecision(2) 
+                  << duration_seconds << ",\n";
     }
+
+    json_file << "  \"Total\": " << std::fixed << std::setprecision(2) 
+                << total_encrypted_computation_seconds << "\n";
+    json_file << "}\n";
+    json_file.close();
 
     return 0;
 }

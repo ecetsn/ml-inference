@@ -53,7 +53,7 @@ def main():
     # 1. Client-side: Generate the test datasets
     dataset_path = params.datadir() / f"dataset.txt"
     utils.run_exe_or_python(harness_dir, "generate_dataset", str(dataset_path))
-    utils.log_step(1, "Harness: MNIST Test dataset generation")
+    utils.log_step(1, "MNIST Test dataset generation")
 
     # 2.1 Communication: Get cryptographic context
     if remote_be:
@@ -67,9 +67,9 @@ def main():
     #   handle its own prg needs. It means that even if called with the same
     #   seed multiple times, the keys and ciphertexts will still be different.
     utils.run_exe_or_python(exec_dir, "client_key_generation", str(size))
-    utils.log_step(2.2 , "Client: Key Generation")
+    utils.log_step(2.2 , "Key Generation")
     # Report size of keys and encrypted data
-    utils.log_size(io_dir / "public_keys", "Client: Public and evaluation keys")
+    utils.log_size(io_dir / "public_keys", "Public and evaluation keys")
 
     # 2.3 Communication: Upload evaluation key
     if remote_be:
@@ -78,7 +78,7 @@ def main():
 
     # 3. Server-side: Preprocess the (encrypted) dataset using exec_dir/server_preprocess_model
     utils.run_exe_or_python(exec_dir, "server_preprocess_model")
-    utils.log_step(3, "Server: (Encrypted) model preprocessing")
+    utils.log_step(3, "(Encrypted) model preprocessing")
 
     # Run steps 4-10 multiple times if requested
     for run in range(num_runs):
@@ -93,30 +93,30 @@ def main():
             genqry_seed = rng.integers(0,0x7fffffff)
             cmd_args.extend(["--seed", str(genqry_seed)])
         utils.run_exe_or_python(harness_dir, "generate_input", *cmd_args)
-        utils.log_step(4, "Harness: Input generation for MNIST")
+        utils.log_step(4, "Input generation for MNIST")
 
         # 5. Client-side: Preprocess input using exec_dir/client_preprocess_input
         utils.run_exe_or_python(exec_dir, "client_preprocess_input", str(size))
-        utils.log_step(5, "Client: Input preprocessing")
+        utils.log_step(5, "Input preprocessing")
 
         # 6. Client-side: Encrypt the input
         utils.run_exe_or_python(exec_dir, "client_encode_encrypt_input", str(size))
-        utils.log_step(6, "Client: Input encryption")
-        utils.log_size(io_dir / "ciphertexts_upload", "Client: Encrypted input")
+        utils.log_step(6, "Input encryption")
+        utils.log_size(io_dir / "ciphertexts_upload", "Encrypted input")
 
         # 7. Server side: Run the encrypted processing run exec_dir/server_encrypted_compute
         utils.run_exe_or_python(exec_dir, "server_encrypted_compute", str(size))
-        utils.log_step(7, "Server: Encrypted ML Inference computation")
+        utils.log_step(7, "Encrypted ML Inference computation")
         # Report size of encrypted results
-        utils.log_size(io_dir / "ciphertexts_download", "Client: Encrypted results")
+        utils.log_size(io_dir / "ciphertexts_download", "Encrypted results")
 
         # 8. Client-side: decrypt
         utils.run_exe_or_python(exec_dir, "client_decrypt_decode", str(size))
-        utils.log_step(8, "Client: Result decryption")
+        utils.log_step(8, "Result decryption")
 
         # 9. Client-side: post-process
         utils.run_exe_or_python(exec_dir, "client_postprocess", str(size))
-        utils.log_step(9, "Client: Result postprocessing")
+        utils.log_step(9, "Result postprocessing")
 
         # 10 Verify the result for single inference or calculate quality for batch inference.
         encrypted_model_preds = params.get_encrypted_model_predictions_file()
