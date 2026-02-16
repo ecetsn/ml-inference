@@ -38,12 +38,16 @@ struct Score {
   float score[MNIST_LABEL_DIM];
 };
 
+CryptoContextT mlp_generate_crypto_context();
+CryptoContextT generate_mult_rot_key(CryptoContextT cc, PrivateKeyT sk);
+CryptoContext<DCRTPoly> read_crypto_context(const InstanceParams& prms);
+void read_eval_keys(const InstanceParams& prms, CryptoContextT cc);
+
 std::vector<CiphertextT> mlp_encrypt(CryptoContextT cc, std::vector<float> v0, PublicKeyT pk);
 std::vector<float> mlp_decrypt(CryptoContextT cc, std::vector<CiphertextT> v0, PrivateKeyT sk);
 PublicKey<DCRTPoly> read_public_key(const InstanceParams& prms);
 PrivateKey<DCRTPoly> read_secret_key(const InstanceParams& prms);
-CryptoContext<DCRTPoly> read_crypto_context(const InstanceParams& prms);
-void read_eval_keys(const InstanceParams& prms, CryptoContextT cc);
+
 void load_dataset(std::vector<Sample> &dataset, const char *filename);
 void write_dataset(const std::vector<Sample> &dataset, const char *filename);
 void load_scores(std::vector<Score> &dataset, const char *filename);
