@@ -6,7 +6,7 @@ The harness also supports an optional *remote backend execution mode* under the 
 
 Submitters need to clone this repository, replace the content of the `submission` or `submission_remote` subdirectory by their own implementation.
 They also may need to changes or replace the script `scripts/build_task.sh` to account for dependencies and build environment for their submission.
-Submitters are expected to document any changes made to the model architecture `harness/mnist/mnist.py` in the `submission/README.md` file. 
+Submitters are expected to document any changes made to the model architecture `harness/mnist/mnist.py` in the `submission/README.md` file. Submitters have the option to generate an `io/server_reported_steps.json` file, which contains fine grained metrics reported by the server in addition to the metrics reported by the harness.
 
 ## Execution Modes
 

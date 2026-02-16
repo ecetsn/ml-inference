@@ -123,6 +123,9 @@ int main(int argc, char* argv[]){
         steps_json["Encrypted computation-" + std::to_string(i)] = duration_seconds;
     }
 
+    // Note: The reference implementation reports the time for each ciphertext in the batch,
+    // as well as the total time for all encrypted computations. Submitters may choose to report 
+    // relevant metrics based on their implementation details.
     steps_json["Total"] = total_encrypted_computation_seconds;
     std::ofstream json_file(prms.server_reported_steps_file());
     json_file << std::setw(2) << steps_json << "\n";
