@@ -48,7 +48,6 @@ int main(int argc, char* argv[]){
     try {
         module = torch::jit::load(model_path);
         module.eval();
-        std::cout << "         [server] PyTorch model weights loaded successfully" << std::endl;
     } catch (const c10::Error& e) {
         std::cerr << "         [server] Error loading PyTorch model: " << e.what() << std::endl;
         return 1;
@@ -112,7 +111,7 @@ int main(int argc, char* argv[]){
         auto ctxtResults = mnist(cc, fc1_weight, fc1_bias, fc2_weight, fc2_bias, ctxt);
         auto end = std::chrono::high_resolution_clock::now();
         auto result_ctxt_path = prms.ctxtdowndir()/("cipher_result_" + std::to_string(i) + ".bin");
-        Serial::SerializeToFile(result_ctxt_path, ctxtResult, SerType::BINARY);
+        Serial::SerializeToFile(result_ctxt_path, ctxtResults, SerType::BINARY);
 
         // Record the time taken for this encrypted computation step.
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
