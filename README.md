@@ -151,7 +151,7 @@ All steps completed for the single inference!
 The batch inference cases run the inference for a batch of inputs of varying sizes. The accuracy (with respect to the ground truth labels) is compared between the decrypted results and the results obtained using the harness model.
 
 ```console
-$python3 ./harness/run_submission.py 1 --seed 76 --num_runs 2
+$python3 ./harness/run_submission.py 1 --seed 3 --num_runs 2
 
 [harness] Running submission for small inference
 [get_openfhe] Found OpenFHE at .../ml-inference/third_party/openfhe (use --force to rebuild).
@@ -218,7 +218,7 @@ $python3 ./harness/run_submission.py 1 --seed 76 --num_runs 2
 00:32:54 [harness] 9: Client: Result postprocessing completed (elapsed: 0.0063s)
 00:32:57 [harness] 10.1: Harness: Run inference for harness plaintext model completed (elapsed: 2.876s)
 [harness] Encrypted model: 0.9600 (96/100 correct)
-[harness] Harness model: 0.9500 (95/100 correct)
+[harness] Harness model: 0.9700 (97/100 correct)
 00:32:57 [harness] 10.2: Harness: Run quality check completed (elapsed: 0.0008s)
 [total latency] 1140.6179s
 
@@ -254,7 +254,7 @@ $python3 ./harness/run_submission.py 1 --seed 76 --num_runs 2
 00:51:47 [harness] 9: Client: Result postprocessing completed (elapsed: 0.0061s)
 00:51:50 [harness] 10.1: Harness: Run inference for harness plaintext model completed (elapsed: 2.8164s)
 [harness] Encrypted model: 0.9600 (96/100 correct)
-[harness] Harness model: 0.9500 (95/100 correct)
+[harness] Harness model: 0.9700 (97/100 correct)
 00:51:50 [harness] 10.2: Harness: Run quality check completed (elapsed: 0.0006s)
 [total latency] 1141.5527s
 
