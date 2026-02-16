@@ -78,6 +78,7 @@ public:
     fs::path preprocessed_input_file() const { return iointermdir()/"preprocessed_input.txt"; }
     fs::path model_scores_file() const { return iointermdir()/"model_scores.txt"; }
     fs::path encrypted_model_predictions_file() const { return iodir()/"encrypted_model_predictions.txt"; }
+    fs::path server_reported_steps_file() const { return iodir()/"server_reported_steps.json"; }
 };
 
 #endif  // ifndef PARAMS_H_

@@ -28,6 +28,15 @@ if [ ! -d "$LIBTORCH_DIR" ]; then
     echo "LibTorch downloaded to $LIBTORCH_DIR"
 fi
 
+NLOHMANN_DIR="$ROOT/third_party/nlohmann"
+NLOHMANN_HEADER="$NLOHMANN_DIR/json.hpp"
+NLOHMANN_URL="https://raw.githubusercontent.com/nlohmann/json/develop/single_include/nlohmann/json.hpp"
+
+if [[ ! -f "$NLOHMANN_HEADER" ]]; then
+      mkdir -p "$NLOHMANN_DIR"
+      curl -L -o "$NLOHMANN_HEADER" "$NLOHMANN_URL"
+fi
+
 # By default, we assume the OpenFHE library is installed at the the local 
 # directory /third_party/openfhe (the default location in get_openfhe.sh).
 # If you want to use a different location, set the CMAKE_PREFIX_PATH variable

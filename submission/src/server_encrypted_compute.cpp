@@ -19,8 +19,12 @@
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <chrono>
+#include <fstream>
+#include <iomanip>
+#include <nlohmann/json.hpp>
 
 using namespace lbcrypto;
+using json = nlohmann::json;
 
 
 int main(int argc, char* argv[]){
@@ -44,7 +48,6 @@ int main(int argc, char* argv[]){
     try {
         module = torch::jit::load(model_path);
         module.eval();
-        std::cout << "         [server] PyTorch model weights loaded successfully" << std::endl;
     } catch (const c10::Error& e) {
         std::cerr << "         [server] Error loading PyTorch model: " << e.what() << std::endl;
         return 1;
@@ -92,6 +95,11 @@ int main(int argc, char* argv[]){
 
     std::vector<CiphertextT> ctxt;
     fs::create_directories(prms.ctxtdowndir());
+    std::cout << "         [server] run encrypted MNIST inference" << std::endl;
+    
+    double total_encrypted_computation_seconds = 0.0;
+    json steps_json = json::object();
+    
     std::cout << "         [server] Run encrypted MNIST inference" << std::endl;
     for (size_t i = 0; i < prms.getBatchSize(); ++i) {
         auto input_ctxt_path = prms.ctxtupdir()/("cipher_input_" + std::to_string(i) + ".bin");
@@ -102,13 +110,24 @@ int main(int argc, char* argv[]){
         auto start = std::chrono::high_resolution_clock::now();
         auto ctxtResults = mnist(cc, fc1_weight, fc1_bias, fc2_weight, fc2_bias, ctxt);
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-        std::cout << "         [server] Execution time for ciphertext " << i << " : " 
-                << duration.count() << " seconds" << std::endl;
-        
         auto result_ctxt_path = prms.ctxtdowndir()/("cipher_result_" + std::to_string(i) + ".bin");
         Serial::SerializeToFile(result_ctxt_path, ctxtResults, SerType::BINARY);
+
+        // Record the time taken for this encrypted computation step.
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        double duration_seconds = duration.count() / 1000.0;
+        total_encrypted_computation_seconds += duration_seconds;
+        std::cout << "         [server] Execution time for ciphertext " << i << " : " 
+                << duration_seconds << " seconds" << std::endl;
+        steps_json["Encrypted computation-" + std::to_string(i)] = duration_seconds;
     }
+
+    // Note: The reference implementation reports the time for each ciphertext in the batch,
+    // as well as the total time for all encrypted computations. Submitters may choose to report 
+    // relevant metrics based on their implementation details.
+    steps_json["Total"] = total_encrypted_computation_seconds;
+    std::ofstream json_file(prms.server_reported_steps_file());
+    json_file << std::setw(2) << steps_json << "\n";
 
     return 0;
 }
