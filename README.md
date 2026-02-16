@@ -168,84 +168,95 @@ $python3 ./harness/run_submission.py 1 --seed 76 --num_runs 2
 -- Generating done (0.0s)
 -- Build files have been written to: /usr/local/google/home/gshruthi/projects/ml-inference/submission/build
 [ 11%] Built target server_preprocess_model
-[ 22%] Built target mlp_openfhe
-[ 44%] Built target client_key_generation
-[ 44%] Built target mlp_encryption_utils
-[ 55%] Built target client_preprocess_input
-[ 83%] Built target client_encode_encrypt_input
-[ 88%] Built target client_postprocess
-[ 88%] Built target client_decrypt_decode
+[ 33%] Built target client_key_generation
+[ 33%] Built target mlp_encryption_utils
+[ 44%] Built target mlp_openfhe
+[ 55%] Built target client_decrypt_decode
+[ 77%] Built target client_postprocess
+[ 77%] Built target client_encode_encrypt_input
+[ 88%] Built target client_preprocess_input
 [100%] Built target server_encrypted_compute
-08:35:16 [harness] 1: Harness: MNIST Test dataset generation completed (elapsed: 6.5235s)
-08:35:18 [harness] 2.2: Client: Key Generation completed (elapsed: 1.1631s)
+[harness] Running submission for small inference
+00:14:03 [harness] 1: Harness: MNIST Test dataset generation completed (elapsed: 6.7306s)
+00:14:04 [harness] 2.2: Client: Key Generation completed (elapsed: 1.1407s)
          [harness] Client: Public and evaluation keys size: 1.0G
-08:35:18 [harness] 3: Server: (Encrypted) model preprocessing completed (elapsed: 0.0076s)
+00:14:04 [harness] 3: Server: (Encrypted) model preprocessing completed (elapsed: 0.007s)
 
          [harness] Run 1 of 2
-08:35:20 [harness] 4: Harness: Input generation for MNIST completed (elapsed: 2.8448s)
-08:35:21 [harness] 5: Client: Input preprocessing completed (elapsed: 0.0101s)
-08:35:21 [harness] 6: Client: Input encryption completed (elapsed: 0.7983s)
-         [harness] Client: Encrypted input size: 75.0M
-         [server] Loading keys
-         [server] PyTorch model weights loaded successfully!
-         [server] run encrypted MNIST inference
-         [server] Execution time for ciphertext 0 : 12 seconds
-         [server] Execution time for ciphertext 1 : 10 seconds
-         [server] Execution time for ciphertext 2 : 10 seconds
-         [server] Execution time for ciphertext 3 : 11 seconds
-         [server] Execution time for ciphertext 4 : 11 seconds
-         [server] Execution time for ciphertext 5 : 10 seconds
-         [server] Execution time for ciphertext 6 : 10 seconds
-         [server] Execution time for ciphertext 7 : 10 seconds
-         [server] Execution time for ciphertext 8 : 10 seconds
-         [server] Execution time for ciphertext 9 : 10 seconds
-         [server] Execution time for ciphertext 10 : 10 seconds
-         [server] Execution time for ciphertext 11 : 10 seconds
-         [server] Execution time for ciphertext 12 : 10 seconds
-         [server] Execution time for ciphertext 13 : 10 seconds
-         [server] Execution time for ciphertext 14 : 10 seconds
-08:38:10 [harness] 7: Server: Encrypted ML Inference computation completed (elapsed: 168.7623s)
-         [harness] Client: Encrypted results size: 15.0M
-08:38:11 [harness] 8: Client: Result decryption completed (elapsed: 0.4645s)
-08:38:11 [harness] 9: Client: Result postprocessing completed (elapsed: 0.0056s)
-08:38:13 [harness] 10.1: Harness: Run inference for harness plaintext model completed (elapsed: 2.854s)
-[harness] Encrypted model: 0.9333 (14/15 correct)
-[harness] Harness model: 1.0000 (15/15 correct)
-08:38:13 [harness] 10.2: Harness: Run quality check completed (elapsed: 0.0008s)
-[total latency] 183.4347s
-
-         [harness] Run 2 of 2
-08:38:16 [harness] 4: Harness: Input generation for MNIST completed (elapsed: 2.982s)
-08:38:16 [harness] 5: Client: Input preprocessing completed (elapsed: 0.0093s)
-08:38:17 [harness] 6: Client: Input encryption completed (elapsed: 0.8277s)
-         [harness] Client: Encrypted input size: 75.0M
+00:14:07 [harness] 4: Harness: Input generation for MNIST completed (elapsed: 2.9506s)
+00:14:07 [harness] 5: Client: Input preprocessing completed (elapsed: 0.0322s)
+00:14:12 [harness] 6: Client: Input encryption completed (elapsed: 4.905s)
+         [harness] Client: Encrypted input size: 500.3M
          [server] Loading keys
          [server] PyTorch model weights loaded successfully!
          [server] run encrypted MNIST inference
          [server] Execution time for ciphertext 0 : 11 seconds
-         [server] Execution time for ciphertext 1 : 10 seconds
+         [server] Execution time for ciphertext 1 : 11 seconds
+         [server] Execution time for ciphertext 2 : 10 seconds
+         [server] Execution time for ciphertext 3 : 10 seconds
+         [server] Execution time for ciphertext 4 : 11 seconds
+         [server] Execution time for ciphertext 5 : 10 seconds
+         [server] Execution time for ciphertext 6 : 11 seconds
+         [server] Execution time for ciphertext 7 : 11 seconds
+         [server] Execution time for ciphertext 8 : 10 seconds
+         [server] Execution time for ciphertext 9 : 10 seconds
+         [server] Execution time for ciphertext 10 : 10 seconds
+         ...
+         [server] Execution time for ciphertext 90 : 10 seconds
+         [server] Execution time for ciphertext 91 : 10 seconds
+         [server] Execution time for ciphertext 92 : 10 seconds
+         [server] Execution time for ciphertext 93 : 11 seconds
+         [server] Execution time for ciphertext 94 : 10 seconds
+         [server] Execution time for ciphertext 95 : 10 seconds
+         [server] Execution time for ciphertext 96 : 11 seconds
+         [server] Execution time for ciphertext 97 : 11 seconds
+         [server] Execution time for ciphertext 98 : 11 seconds
+         [server] Execution time for ciphertext 99 : 11 seconds
+00:32:51 [harness] 7: Server: Encrypted ML Inference computation completed (elapsed: 1119.3046s)
+         [harness] Client: Encrypted results size: 100.2M
+00:32:54 [harness] 8: Client: Result decryption completed (elapsed: 2.6641s)
+00:32:54 [harness] 9: Client: Result postprocessing completed (elapsed: 0.0063s)
+00:32:57 [harness] 10.1: Harness: Run inference for harness plaintext model completed (elapsed: 2.876s)
+[harness] Encrypted model: 0.9600 (96/100 correct)
+[harness] Harness model: 0.9500 (95/100 correct)
+00:32:57 [harness] 10.2: Harness: Run quality check completed (elapsed: 0.0008s)
+[total latency] 1140.6179s
+
+[harness] Run 2 of 2
+00:32:59 [harness] 4: Harness: Input generation for MNIST completed (elapsed: 2.8902s)
+00:32:59 [harness] 5: Client: Input preprocessing completed (elapsed: 0.033s)
+00:33:04 [harness] 6: Client: Input encryption completed (elapsed: 5.0499s)
+         [harness] Client: Encrypted input size: 500.3M
+         [server] Loading keys
+         [server] PyTorch model weights loaded successfully!
+         [server] run encrypted MNIST inference
+         [server] Execution time for ciphertext 0 : 11 seconds
+         [server] Execution time for ciphertext 1 : 11 seconds
          [server] Execution time for ciphertext 2 : 10 seconds
          [server] Execution time for ciphertext 3 : 10 seconds
          [server] Execution time for ciphertext 4 : 10 seconds
          [server] Execution time for ciphertext 5 : 10 seconds
          [server] Execution time for ciphertext 6 : 10 seconds
-         [server] Execution time for ciphertext 7 : 10 seconds
-         [server] Execution time for ciphertext 8 : 10 seconds
-         [server] Execution time for ciphertext 9 : 10 seconds
-         [server] Execution time for ciphertext 10 : 10 seconds
-         [server] Execution time for ciphertext 11 : 10 seconds
-         [server] Execution time for ciphertext 12 : 11 seconds
-         [server] Execution time for ciphertext 13 : 11 seconds
-         [server] Execution time for ciphertext 14 : 11 seconds
-08:41:05 [harness] 7: Server: Encrypted ML Inference computation completed (elapsed: 167.7079s)
-         [harness] Client: Encrypted results size: 15.0M
-08:41:05 [harness] 8: Client: Result decryption completed (elapsed: 0.4576s)
-08:41:05 [harness] 9: Client: Result postprocessing completed (elapsed: 0.0056s)
-08:41:08 [harness] 10.1: Harness: Run inference for harness plaintext model completed (elapsed: 2.8638s)
-[harness] Encrypted model: 0.9333 (14/15 correct)
-[harness] Harness model: 1.0000 (15/15 correct)
-08:41:08 [harness] 10.2: Harness: Run quality check completed (elapsed: 0.0006s)
-[total latency] 182.5487s
+         ...
+         [server] Execution time for ciphertext 90 : 11 seconds
+         [server] Execution time for ciphertext 91 : 10 seconds
+         [server] Execution time for ciphertext 92 : 11 seconds
+         [server] Execution time for ciphertext 93 : 10 seconds
+         [server] Execution time for ciphertext 94 : 10 seconds
+         [server] Execution time for ciphertext 95 : 11 seconds
+         [server] Execution time for ciphertext 96 : 10 seconds
+         [server] Execution time for ciphertext 97 : 10 seconds
+         [server] Execution time for ciphertext 98 : 11 seconds
+         [server] Execution time for ciphertext 99 : 11 seconds
+00:51:45 [harness] 7: Server: Encrypted ML Inference computation completed (elapsed: 1120.2141s)
+         [harness] Client: Encrypted results size: 100.2M
+00:51:47 [harness] 8: Client: Result decryption completed (elapsed: 2.6642s)
+00:51:47 [harness] 9: Client: Result postprocessing completed (elapsed: 0.0061s)
+00:51:50 [harness] 10.1: Harness: Run inference for harness plaintext model completed (elapsed: 2.8164s)
+[harness] Encrypted model: 0.9600 (96/100 correct)
+[harness] Harness model: 0.9500 (95/100 correct)
+00:51:50 [harness] 10.2: Harness: Run quality check completed (elapsed: 0.0006s)
+[total latency] 1141.5527s
 
 All steps completed for the small inference!
 ```
