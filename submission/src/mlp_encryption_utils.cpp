@@ -16,6 +16,23 @@
 #include <sstream>
 #include <string>
 
+CryptoContextT mlp_generate_crypto_context() {
+  CCParamsT params;
+  params.SetMultiplicativeDepth(8);
+  params.SetKeySwitchTechnique(HYBRID);
+  CryptoContextT cc = GenCryptoContext(params);
+  cc->Enable(PKE);
+  cc->Enable(KEYSWITCH);
+  cc->Enable(LEVELEDSHE);
+  return cc;
+}
+
+CryptoContextT generate_mult_rot_key(CryptoContextT cc, PrivateKeyT sk) {
+  cc->EvalMultKeyGen(sk);
+  cc->EvalRotateKeyGen(sk, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 32, 46, 64, 69, 92, 115, 128, 138, 161, 184, 207, 230, 253, 256, 276, 299, 322, 345, 368, 391, 414, 437, 460, 483, 506, 512});
+  return cc;
+}
+
 PublicKey<DCRTPoly> read_public_key(const InstanceParams& prms) {
     PublicKey<DCRTPoly> pk;
     if (!Serial::DeserializeFromFile(prms.pubkeydir()/"pk.bin", pk,
@@ -59,30 +76,69 @@ void read_eval_keys(const InstanceParams& prms, CryptoContextT cc) {
 }
 
 
-ConstCiphertext<DCRTPoly> mlp_encrypt(CryptoContext<DCRTPoly> cc, std::vector<float> input, PublicKey<DCRTPoly> pk) {
-  std::vector<double> v11340(std::begin(input), std::end(input));
-  uint32_t v11340_filled_n = cc->GetCryptoParameters()->GetElementParams()->GetRingDimension() / 2;
-  auto v11340_filled = v11340;
-  v11340_filled.clear();
-  v11340_filled.reserve(v11340_filled_n);
-  for (uint32_t i = 0; i < v11340_filled_n; ++i) {
-    v11340_filled.push_back(v11340[i % v11340.size()]);
+std::vector<CiphertextT> mlp_encrypt(CryptoContextT cc, std::vector<float> v0, PublicKeyT pk) {
+  [[maybe_unused]] size_t v1 = 0;
+  std::vector<float> v2(1024, 0);
+  [[maybe_unused]] int32_t v3 = 0;
+  [[maybe_unused]] int32_t v4 = 1;
+  [[maybe_unused]] int32_t v5 = 784;
+  std::vector<float> v6 = v2;
+  for (auto v7 = 0; v7 < 784; ++v7) {
+    size_t v9 = static_cast<size_t>(v7);
+    float v10 = v0[v9 + 784 * (0)];
+    v6[v9 + 1024 * (0)] = v10;
   }
-  const auto& v11341 = cc->MakeCKKSPackedPlaintext(v11340_filled);
-  const auto& v11342 = cc->Encrypt(pk, v11341);
-  return v11342;
+  std::vector<float> v12(1024);
+  for (int64_t v12_i0 = 0; v12_i0 < 1; ++v12_i0) {
+    for (int64_t v12_i1 = 0; v12_i1 < 1024; ++v12_i1) {
+      v12[v12_i1 + 1024 * (v12_i0)] = v6[0 + v12_i1 * 1 + 1024 * (0 + v12_i0 * 1)];
+    }
+  }
+  std::vector<double> v13(std::begin(v12), std::end(v12));
+  auto pt_filled_n = cc->GetCryptoParameters()->GetElementParams()->GetRingDimension() / 2;
+  auto pt_filled = v13;
+  pt_filled.clear();
+  pt_filled.reserve(pt_filled_n);
+  for (size_t i = 0; i < pt_filled_n; ++i) {
+    pt_filled.push_back(v13[i % v13.size()]);
+  }
+  auto pt = cc->MakeCKKSPackedPlaintext(pt_filled);
+  const auto& ct = cc->Encrypt(pk, pt);
+  const std::vector<CiphertextT> v14 = {ct};
+  return v14;
 }
 
-std::vector<float> mlp_decrypt(CryptoContextT v11343, CiphertextT v11344, PrivateKeyT v11345) {
-  PlaintextT v11346;
-  v11343->Decrypt(v11345, v11344, &v11346);
-  v11346->SetLength(1024);
-  const auto& v11347_cast = v11346->GetCKKSPackedValue();
-  std::vector<float> v11347(v11347_cast.size());
-  std::transform(std::begin(v11347_cast), std::end(v11347_cast), std::begin(v11347), [](const std::complex<double>& c) { return c.real(); });
-  return v11347;
+std::vector<float> mlp_decrypt(CryptoContextT cc, std::vector<CiphertextT> v0, PrivateKeyT sk) {
+  [[maybe_unused]] size_t v1 = 0;
+  [[maybe_unused]] int32_t v2 = 1024;
+  [[maybe_unused]] int32_t v3 = 16;
+  [[maybe_unused]] int32_t v4 = 6;
+  [[maybe_unused]] int32_t v5 = 1;
+  [[maybe_unused]] int32_t v6 = 0;
+  std::vector<float> v7(10, 0);
+  const auto& ct = v0[0];
+  PlaintextT pt;
+  cc->Decrypt(sk, ct, &pt);
+  pt->SetLength(1024);
+  const auto& v8_cast = pt->GetCKKSPackedValue();
+  std::vector<float> v8(v8_cast.size());
+  std::transform(std::begin(v8_cast), std::end(v8_cast), std::begin(v8), [](const std::complex<double>& c) { return c.real(); });
+  std::vector<float> v9 = v7;
+  for (auto v10 = 0; v10 < 1024; ++v10) {
+    int32_t v12 = v10 + v4;
+    int32_t v13 = v12 % v3;
+    bool v14 = v13 >= v4;
+    if (v14) {
+      int32_t v16 = v10 % v3;
+      size_t v17 = static_cast<size_t>(v10);
+      float v18 = v8[v17 + 1024 * (0)];
+      size_t v19 = static_cast<size_t>(v16);
+      v9[v19 + 10 * (0)] = v18;
+    } else {
+    }
+  }
+  return v9;
 }
-
 
 void load_dataset(std::vector<Sample> &dataset, const char *filename) {
   std::ifstream file(filename);
@@ -94,12 +150,47 @@ void load_dataset(std::vector<Sample> &dataset, const char *filename) {
     for (int i = 0; i < MNIST_DIM; i++) {
       iss >> sample.image[i];
     }
-    // Pad remaining values with 0.0 if NORMALIZED_DIM > MNIST_DIM
-    for (int i = MNIST_DIM; i < NORMALIZED_DIM; i++) {
-      sample.image[i] = 0.0f;
-    }
-
     dataset.push_back(sample);
+  }
+}
+
+void write_dataset(const std::vector<Sample> &dataset, const char *filename) {
+  std::ofstream file(filename);
+  for (const auto &sample : dataset) {
+    for (int i = 0; i < MNIST_DIM; i++) {
+      file << sample.image[i];
+      if (i < MNIST_DIM - 1) {
+        file << " ";
+      }
+    }
+    file << "\n";
+  }
+}
+
+void load_scores(std::vector<Score> &dataset, const char *filename) {
+  std::ifstream file(filename);
+  Score score;
+  std::string line;
+  while (std::getline(file, line)) {
+    std::istringstream iss(line);
+    // Read MNIST_LABEL_DIM values from file
+    for (int i = 0; i < MNIST_LABEL_DIM; i++) {
+      iss >> score.score[i];
+    }
+    dataset.push_back(score);
+  }
+}
+
+void write_scores(const std::vector<Score> &dataset, const char *filename) {
+  std::ofstream file(filename);
+  for (const auto &score : dataset) {
+    for (int i = 0; i < MNIST_LABEL_DIM; i++) {
+      file << score.score[i];
+      if (i < MNIST_LABEL_DIM - 1) {
+        file << " ";
+      }
+    }
+    file << "\n";
   }
 }
 

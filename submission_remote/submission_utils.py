@@ -6,7 +6,7 @@ import sys
 from lattica_query.lattica_query_client import QueryClient
 
 instance_name = ["single", "small", "medium", "large"]
-batch_size = [1, 15, 1000, 10000]
+batch_size = [1, 100, 1000, 10000]
 
 def init(size, mute_logs=True):
     return LocalFilePaths(size, mute_logs)

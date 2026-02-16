@@ -16,6 +16,8 @@
 #include "params.h"
 #include "mlp_openfhe.h"
 #include "mlp_encryption_utils.h"
+#include <torch/torch.h>
+#include <torch/script.h>
 #include <chrono>
 
 using namespace lbcrypto;
@@ -37,22 +39,75 @@ int main(int argc, char* argv[]){
     
     std::cout << "         [server] Loading keys" << std::endl;
 
-    Ciphertext<DCRTPoly> ctxt;
+    const std::string model_path = "submission/data/traced_model.pt";
+    torch::jit::script::Module module;
+    try {
+        module = torch::jit::load(model_path);
+        module.eval();
+        std::cout << "         [server] PyTorch model weights loaded successfully" << std::endl;
+    } catch (const c10::Error& e) {
+        std::cerr << "         [server] Error loading PyTorch model: " << e.what() << std::endl;
+        return 1;
+    }
+
+    // Extract model weights
+    std::vector<float> fc1_weight, fc1_bias, fc2_weight, fc2_bias;
+    try {
+        // Get named parameters from the model
+        auto named_params = module.named_parameters();
+        
+        for (const auto& param : named_params) {
+            const std::string& name = param.name;
+            const torch::Tensor& tensor = param.value;
+            // Extract weights based on parameter name
+            if (name.find("fc1.weight") != std::string::npos || name.find("0.weight") != std::string::npos) {
+                auto flat_tensor = tensor.flatten().contiguous();
+                fc1_weight.assign(flat_tensor.data_ptr<float>(), 
+                                 flat_tensor.data_ptr<float>() + flat_tensor.numel());
+            } else if (name.find("fc1.bias") != std::string::npos || name.find("0.bias") != std::string::npos) {
+                auto flat_tensor = tensor.flatten().contiguous();
+                fc1_bias.assign(flat_tensor.data_ptr<float>(), 
+                               flat_tensor.data_ptr<float>() + flat_tensor.numel());
+            } else if (name.find("fc2.weight") != std::string::npos || name.find("2.weight") != std::string::npos) {
+                auto flat_tensor = tensor.flatten().contiguous();
+                fc2_weight.assign(flat_tensor.data_ptr<float>(), 
+                                 flat_tensor.data_ptr<float>() + flat_tensor.numel());
+            } else if (name.find("fc2.bias") != std::string::npos || name.find("2.bias") != std::string::npos) {
+                auto flat_tensor = tensor.flatten().contiguous();
+                fc2_bias.assign(flat_tensor.data_ptr<float>(), 
+                               flat_tensor.data_ptr<float>() + flat_tensor.numel());
+            }
+        }
+        
+        // Verify we have all required weights
+        if (fc1_weight.empty() || fc1_bias.empty() || fc2_weight.empty() || fc2_bias.empty()) {
+            std::cerr << "         [server] Error: Could not extract all required weights from model" << std::endl;
+            return 1;
+        }
+        
+    } catch (const c10::Error& e) {
+        std::cerr << "         [server] Error extracting weights: " << e.what() << std::endl;
+        return 1;
+    }
+
+    std::vector<CiphertextT> ctxt;
     fs::create_directories(prms.ctxtdowndir());
-    std::cout << "         [server] run encrypted MNIST inference" << std::endl;
+    std::cout << "         [server] Run encrypted MNIST inference" << std::endl;
     for (size_t i = 0; i < prms.getBatchSize(); ++i) {
         auto input_ctxt_path = prms.ctxtupdir()/("cipher_input_" + std::to_string(i) + ".bin");
         if (!Serial::DeserializeFromFile(input_ctxt_path, ctxt, SerType::BINARY)) {
             throw std::runtime_error("Failed to get ciphertexts from " + input_ctxt_path.string());
         }
+        
         auto start = std::chrono::high_resolution_clock::now();
-        auto ctxtResult = mlp(cc, ctxt);
+        auto ctxtResults = mnist(cc, fc1_weight, fc1_bias, fc2_weight, fc2_bias, ctxt);
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
         std::cout << "         [server] Execution time for ciphertext " << i << " : " 
                 << duration.count() << " seconds" << std::endl;
+        
         auto result_ctxt_path = prms.ctxtdowndir()/("cipher_result_" + std::to_string(i) + ".bin");
-        Serial::SerializeToFile(result_ctxt_path, ctxtResult, SerType::BINARY);
+        Serial::SerializeToFile(result_ctxt_path, ctxtResults, SerType::BINARY);
     }
 
     return 0;
