@@ -21,6 +21,8 @@ NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu || echo 4)
 # If you want to use a different location, set the CMAKE_PREFIX_PATH variable
 # accordingly.
 cmake -S "$TASK_DIR" -B "$BUILD" \
-      -DCMAKE_PREFIX_PATH="$ROOT/third_party/openfhe"
+      -DCMAKE_PREFIX_PATH="$ROOT/third_party/openfhe;$ROOT/submission/third_party/rmm;$ROOT/submission/third_party/nvtx3" \
+      -Drmm_DIR="$ROOT/submission/third_party/rmm" \
+      -Dnvtx3_DIR="$ROOT/submission/third_party/nvtx3"
 cd "$TASK_DIR/build"
 make -j"$NPROC"

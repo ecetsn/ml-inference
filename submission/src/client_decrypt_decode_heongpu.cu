@@ -15,6 +15,7 @@
 #include "utils.h"
 
 #include "heongpu.cuh"
+#include "mlp_encryption_utils.h"
 
 
 int main(int argc, char* argv[]) {
@@ -25,7 +26,10 @@ int main(int argc, char* argv[]) {
     }
 
     const auto size = static_cast<InstanceSize>(std::stoi(argv[1]));
-    InstanceParams prms(size);
+    const auto exe_path = fs::canonical(fs::path(argv[0])).parent_path();
+    const auto submission_root = exe_path.parent_path();
+    const auto repo_root = submission_root.parent_path();
+    InstanceParams prms(size, repo_root);
 
     // Use it for memory pool
     cudaSetDevice(0);
@@ -46,8 +50,9 @@ int main(int argc, char* argv[]) {
         auto ctxt_path = prms.ctxtdowndir() / ("cipher_result_" + std::to_string(i) + ".bin");
         auto ctxt = heongpu::serializer::load_from_file<heongpu::Ciphertext<Scheme>>(ctxt_path);
         // taking the decrypted result happens in the client side ( with taking the argmax - logits)
-        auto logits = mlp_decrypt(context, secret_key, ctxt, 1024);
-        int pred = argmax(logits);
+        auto logits = mlp_decrypt(context, secret_key, ctxt);
+        constexpr int kNumClasses = 10;
+        int pred = argmax(logits.data(), kNumClasses);
         out << pred << '\n';
     }
 

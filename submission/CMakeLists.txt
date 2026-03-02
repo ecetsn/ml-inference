@@ -53,7 +53,7 @@ endif()
 find_package(HEonGPU)
 
 # 1. Key generation
-add_executable(client_key_generation src/client_key_generation_heongpu.cu)
+add_executable(client_key_generation src/client_key_generation_heongpu.cu) 
 
 # 2. Server model preprocessing
 add_executable(server_preprocess_model src/server_preprocess_model_heongpu.cu)
@@ -62,22 +62,23 @@ add_executable(server_preprocess_model src/server_preprocess_model_heongpu.cu)
 add_executable(client_preprocess_input src/client_preprocess_input_heongpu.cu)
 
 # 4. Client input encryption -> need to implement mlp encryption utils with HEonGPU
-#add_executable(client_encode_encrypt_input src/client_encode_encrypt_input_heongpu.cu src/mlp_encryption_utils_heongpu.cu)
-add_executable(client_encode_encrypt_input src/empty_stage.cu)
+add_executable(client_encode_encrypt_input src/client_encode_encrypt_input_heongpu.cu src/mlp_encryption_utils_heongpu.cu)
 
 # 5. Server encrypted computation
-add_executable(server_encrypted_compute src/empty_stage.cu)
+add_executable(server_encrypted_compute
+    src/server_encrypted_compute_heongpu.cu
+    src/mlp_encryption_utils_heongpu.cu
+    src/mlp_heongpu.cu
+)
 
 # 6. Client decrypt + decode
-add_executable(client_decrypt_decode src/empty_stage.cu)
+add_executable(client_decrypt_decode
+    src/client_decrypt_decode_heongpu.cu
+    src/mlp_encryption_utils_heongpu.cu
+)
 
 # 7. Client postprocess
-add_executable(client_postprocess src/client_postprocess_heongpu.cu)
-
-# 8. Shared MLP utility (used by others, built last)
-add_executable(mlp_encryption_utils src/empty_stage.cu)
-
-add_executable(mlp src/empty_stage.cu)
+add_executable(client_postprocess src/empty_stage.cu)
 
 # List all your executables
 set(MY_EXECUTABLES
@@ -88,8 +89,6 @@ set(MY_EXECUTABLES
     server_encrypted_compute
     client_decrypt_decode
     client_postprocess
-    mlp_encryption_utils
-    mlp
 )
 
 # Apply the same properties and libraries to each

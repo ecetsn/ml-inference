@@ -10,6 +10,7 @@
 #include <chrono>
 #include <iostream>
 #include <filesystem>
+#include "mlp_heongpu.h"
 
 int main(int argc, char* argv[]) {
 
@@ -19,19 +20,36 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    constexpr std::size_t FC1_IN_DIM   = 1024;
+    constexpr std::size_t FC1_OUT_DIM  = 1024;
+    constexpr std::size_t FC2_IN_DIM   = 1024;
+    constexpr std::size_t FC2_OUT_DIM  = 1024;
     auto size = static_cast<InstanceSize>(std::stoi(argv[1]));
-    InstanceParams prms(size);
+    const auto exe_path = fs::canonical(fs::path(argv[0])).parent_path();
+    const auto submission_root = exe_path.parent_path();
+    const auto repo_root = submission_root.parent_path();
+    InstanceParams prms(size, repo_root);
 
     // Initialize GPU and load HEonGPU context and keys
     cudaSetDevice(0);
-    std::cout << "         [server] Loading HEonGPU context and keys..." << std::endl;
+    std::cout << "         [server] Loading HEonGPU context,keys and weights..." << std::endl;
 
-    auto context = heongpu::serializer::load_from_file<heongpu::HEContext<Scheme>>(prms.pubkeydir() / "cc.bin");
-    auto public_key = heongpu::serializer::load_from_file<heongpu::Publickey<Scheme>>(prms.pubkeydir() / "pk.bin");
-    auto eval_key = heongpu::serializer::load_from_file<heongpu::EvalKey<Scheme>>(prms.pubkeydir() / "ek.bin");
+    auto context    = read_context(prms);
+    auto public_key = read_public_key(prms);
+    auto galois_key = read_galois_key(prms);
+    auto relin_key  = read_relin_key(prms);
+    auto weights_dir = prms.rtdir() / "src" / "Mlp_Weights";
+    DenseWeights W_fc1 = load_fc_weights_txt((weights_dir / "fc1.txt").string(),
+                                             FC1_IN_DIM, FC1_OUT_DIM);
+    DenseWeights W_fc2 = load_fc_weights_txt((weights_dir / "fc2.txt").string(),
+                                             FC2_IN_DIM, FC2_OUT_DIM);
 
     heongpu::HEEncoder<Scheme> encoder(context);
     heongpu::HEArithmeticOperator<Scheme> op(context, encoder);
+
+    std::cout << "W1: in_dim=" << W_fc1.in_dim << " out_dim=" << W_fc1.out_dim << std::endl;
+    std::cout << "W2: in_dim=" << W_fc2.in_dim << " out_dim=" << W_fc2.out_dim << std::endl;
+
 
     // Process encrypted inputs
     fs::create_directories(prms.ctxtdowndir());
@@ -39,22 +57,19 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 0; i < prms.getBatchSize(); ++i) {
         auto input_ctxt_path = prms.ctxtupdir() / ("cipher_input_" + std::to_string(i) + ".bin");
-
-        heongpu::Ciphertext<Scheme> ctxt_input;
-        if (!heongpu::serializer::load_from_file(input_ctxt_path, ctxt_input)) {
-            throw std::runtime_error("Failed to load ciphertext from " + input_ctxt_path.string());
-        }
+        auto ctxt_input = heongpu::serializer::load_from_file<heongpu::Ciphertext<Scheme>>(input_ctxt_path);
 
         auto start = std::chrono::high_resolution_clock::now();
 
         // Perform encrypted inference
         // implement this MLP version using HEonGPU operators 
-        auto ctxt_result = mlp_heongpu(context, op, ctxt_input);  
+        auto ctxt_result = mlp_heongpu(context, ctxt_input, W_fc1, W_fc2,
+                                       public_key, op, galois_key, encoder, relin_key);
 
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+        double duration = std::chrono::duration<double>(end - start).count();
         std::cout << "         [server] Execution time for ciphertext " << i 
-                  << " : " << duration.count() << " seconds" << std::endl;
+                  << " : " << duration << " seconds" << std::endl;
 
         auto result_ctxt_path = prms.ctxtdowndir() / ("cipher_result_" + std::to_string(i) + ".bin");
         heongpu::serializer::save_to_file(ctxt_result, result_ctxt_path);

@@ -24,7 +24,10 @@ int main(int argc, char* argv[]) {
     }
 
     auto size = static_cast<InstanceSize>(std::stoi(argv[1]));
-    InstanceParams prms(size);
+    const auto exe_path = fs::canonical(fs::path(argv[0])).parent_path();
+    const auto submission_root = exe_path.parent_path();
+    const auto repo_root = submission_root.parent_path();
+    InstanceParams prms(size, repo_root);
 
     const bool countOnly = (argc >= 3 && std::string(argv[2]) == "--count_only");
 

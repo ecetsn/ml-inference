@@ -8,7 +8,7 @@
 #include "params.h"
 #include "utils.h"
 #include "heongpu.cuh"
-
+ 
 
 int main(int argc, char* argv[]) {
 
@@ -18,7 +18,11 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     auto size = static_cast<InstanceSize>(std::stoi(argv[1]));
-    InstanceParams prms(size);
+    const auto exe_path = fs::canonical(fs::path(argv[0])).parent_path();
+    const auto submission_root = exe_path.parent_path();
+    // Harness expects IO under repo root (one level above submission/)
+    const auto repo_root = submission_root.parent_path();
+    InstanceParams prms(size, repo_root);
 
     cudaSetDevice(0); // Use it for memory pool
 
@@ -26,18 +30,48 @@ int main(int argc, char* argv[]) {
     heongpu::HEContext<Scheme> context(
         heongpu::keyswitching_type::KEYSWITCHING_METHOD_I);
 
-    size_t poly_modulus_degree = 8192;
+    size_t poly_modulus_degree = 16384;
     context.set_poly_modulus_degree(poly_modulus_degree);
-    context.set_coeff_modulus_bit_sizes({60, 30, 30, 30}, {60});
+    // Extend the modulus chain so we have more rescale levels for deep MLP ops.
+    context.set_coeff_modulus_bit_sizes(
+        {40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30},
+        {60});
     context.generate();
     context.print_parameters();
 
+    size_t in_dim = 1024; // change according to weight inp
+    int B = 32;
+    int T = static_cast<int>((in_dim + B - 1) / B);
+    std::vector<int> rotations;
+    rotations.reserve((B - 1) + (T - 1));
+
+    for (int b = 1; b < B; ++b) {
+    rotations.push_back(b);
+    }
+
+    for (int j = 1; j < T; ++j) {
+    rotations.push_back(j * B);
+    }
+    std::sort(rotations.begin(), rotations.end());
+    rotations.erase(std::unique(rotations.begin(), rotations.end()), rotations.end());
+
+    
+
     heongpu::HEKeyGenerator<Scheme> keygen(context);
     heongpu::Secretkey<Scheme> secret_key(context);
+    // Request only the rotations we actually use in dense_matvec_naive
+    // (b=1..31 and block offsets of kBlockSize=32). Generating a custom
+    // Galois key avoids missing-rotation failures at runtime.
+    heongpu::Galoiskey<Scheme> galois_key(context, rotations);
+    heongpu::Relinkey<Scheme> relin_key(context);
+
     keygen.generate_secret_key(secret_key);
 
     heongpu::Publickey<Scheme> public_key(context);
+    
     keygen.generate_public_key(public_key, secret_key);
+    keygen.generate_relin_key(relin_key, secret_key);
+    keygen.generate_galois_key(galois_key, secret_key);
 
     fs::create_directories(prms.pubkeydir());
     fs::create_directories(prms.seckeydir());
@@ -45,6 +79,8 @@ int main(int argc, char* argv[]) {
     heongpu::serializer::save_to_file(context, prms.pubkeydir()/"cc.bin");
     heongpu::serializer::save_to_file(public_key, prms.pubkeydir()/"pk.bin");
     heongpu::serializer::save_to_file(secret_key, prms.seckeydir()/"sk.bin");
-    
+    heongpu::serializer::save_to_file(galois_key, prms.pubkeydir()/"rk.bin");
+    heongpu::serializer::save_to_file(relin_key, prms.pubkeydir()/"mk.bin");
     return 0;
+
 }
