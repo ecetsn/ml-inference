@@ -1,6 +1,6 @@
 #include "mlp_encryption_utils.h"
 #include "utils.h"
-#include "heongpu.cuh"
+#include <heongpu/heongpu.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -16,7 +16,21 @@ heongpu::HEContext<Scheme> read_context(const InstanceParams& prms) {
     if (!fs::exists(path)) {
         throw std::runtime_error("read_context: missing " + path.string());
     }
-    return heongpu::serializer::load_from_file<heongpu::HEContext<Scheme>>(path);
+    
+    std::ifstream ifs(path, std::ios::binary);
+    if (!ifs) throw std::runtime_error("Cannot open context file: " + path.string());
+
+    uint64_t size;
+    ifs.read(reinterpret_cast<char*>(&size), sizeof(size));
+    std::vector<uint8_t> buffer(size);
+    ifs.read(reinterpret_cast<char*>(buffer.data()), size);
+
+    std::stringstream ss;
+    heongpu::serializer::from_buffer(ss, heongpu::serializer::decompress(buffer));
+
+    auto context = heongpu::GenHEContext<Scheme>();
+    context->load(ss);
+    return context;
 }
 
 heongpu::Publickey<Scheme> read_public_key(const InstanceParams& prms) {
@@ -59,7 +73,7 @@ heongpu::Ciphertext<Scheme> mlp_encrypt(heongpu::HEContext<Scheme>& ctx,
         throw std::invalid_argument("mlp_encrypt: input vector must be non-empty");
     }
 
-    const size_t slot_count = ctx.get_poly_modulus_degree() / 2;
+    const size_t slot_count = ctx->get_poly_modulus_degree() / 2;
     if (slot_count == 0) {
         throw std::runtime_error("mlp_encrypt: invalid slot count");
     }

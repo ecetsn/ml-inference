@@ -136,5 +136,7 @@ def test_model(model, device=None):
     return acc
 
 if __name__ == "__main__":
-    model = train_model(epochs=5, lr=1e-3)
-    test_model(model)
+    device = "cpu"
+    print(f"[INFO] Forcing device: {device}")
+    model = train_model(epochs=5, lr=1e-3, device=device)
+    test_model(model, device=device)

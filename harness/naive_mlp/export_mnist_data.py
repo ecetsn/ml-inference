@@ -2,8 +2,7 @@ import torch
 from torchvision import datasets, transforms
 from pathlib import Path
 
-# Default directory for MNIST dataset
-DATA_DIR = "./harness/naive_mlp/mnist/dataset"
+DATA_DIR = Path(__file__).resolve().parent / "mnist" / "dataset"
 
 def export_test_pixels_labels(data_dir=DATA_DIR, pixels_file="mnist_test_pixels.txt", labels_file="mnist_test_labels.txt", num_samples=-1, seed=None):
     """

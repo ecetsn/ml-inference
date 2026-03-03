@@ -7,6 +7,8 @@ harness/__pycache__/
 harness/mnist/__pycache__/
 harness/naive_mlp/mlp_weights/*
 harness/naive_mlp/mnist/*
+venv/
+example/
 
 # Prerequisites
 *.d

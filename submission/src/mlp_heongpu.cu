@@ -22,13 +22,23 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
     heongpu::HEEncoder<Scheme>& enc,
     heongpu::Relinkey<Scheme>& mk,
     int& depth) {
-    const size_t slot_count = he.get_poly_modulus_degree() / 2;
+    const size_t slot_count = he->get_poly_modulus_degree() / 2;
     const size_t in_dim = W.in_dim;
     const size_t out_dim = W.out_dim;
 
     if (W.data.size() != in_dim * out_dim) {
         throw std::invalid_argument("dense_matvec_naive: DenseWeights must store in_dim*out_dim values (diagonalized layout expected)");
     }
+    
+    // Debug: Check weight range and first few values
+    double w_min = W.data[0], w_max = W.data[0];
+    for (double d : W.data) {
+        w_min = std::min(w_min, d);
+        w_max = std::max(w_max, d);
+    }
+    std::cerr << "[debug] DenseMatVec weights: range=[" << w_min << ", " << w_max << "], first5=[";
+    for (int i=0; i<5 && i<W.data.size(); ++i) std::cerr << W.data[i] << (i==4?"":", ");
+    std::cerr << "]" << std::endl;
     if (out_dim > slot_count) {
         throw std::invalid_argument("dense_matvec_naive: out_dim exceeds slot count; weights must be packed as diagonals");
     }
@@ -120,7 +130,7 @@ heongpu::Ciphertext<Scheme> approx_relu_ct(
     heongpu::HEEncoder<Scheme>& enc,
     heongpu::Relinkey<Scheme>& mk,
     int& depth) {
-    const size_t slot_count = he.get_poly_modulus_degree() / 2;
+    const size_t slot_count = he->get_poly_modulus_degree() / 2;
     const double c1  =  8.82341343192733;
     const double c3  = -86.6415008377027;
     const double c5  =  388.964712077092;
@@ -244,7 +254,11 @@ auto safe_rescale = [&](heongpu::Ciphertext<Scheme>& ct,
     auto pt_half = encode_constant_plain(0.5, lvl_acc, relu_mul, "approx_relu_ct half");
     heongpu::Ciphertext<Scheme> relu_ct(he);
     op.multiply_plain(relu_mul, pt_half, relu_ct);
-    depth = lvl_acc;
+    
+    // HEonGPU requires rescale before rotation/next op if rescale_required is true.
+    // The previous multiply_plain set rescale_required = true.
+    op.rescale_inplace(relu_ct);
+    depth = lvl_acc + 1;
     return relu_ct;
 }
 
@@ -260,7 +274,9 @@ heongpu::Ciphertext<Scheme> mlp_heongpu(
     heongpu::Relinkey<Scheme>& mk) {
     int depth = 0;
     auto h_ct = dense_matvec_naive(he, x_ct, W1, pk, op, rk, enc, mk, depth);
+    std::cerr << "[debug] Before activation depth=" << depth << std::endl;
     h_ct = approx_relu_ct(he, h_ct, op, enc, mk, depth);
+    std::cerr << "[debug] After activation depth=" << depth << std::endl;
     auto y_ct = dense_matvec_naive(he, h_ct, W2, pk, op, rk, enc, mk, depth);
     return y_ct;
 }

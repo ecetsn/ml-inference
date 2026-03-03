@@ -14,7 +14,7 @@
 #include "params.h"
 #include "utils.h"
 
-#include "heongpu.cuh"
+#include <heongpu/heongpu.hpp>
 #include "mlp_encryption_utils.h"
 
 
@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
     // Use it for memory pool
     cudaSetDevice(0);
 
-    // Load context & secret key, error throw from load_from_file HEonGPU
-    auto context    = heongpu::serializer::load_from_file<heongpu::HEContext<Scheme>>(prms.pubkeydir() / "cc.bin");
-    auto secret_key = heongpu::serializer::load_from_file<heongpu::Secretkey<Scheme>>(prms.seckeydir() / "sk.bin");
+    // Load context & secret key
+    auto context    = read_context(prms);
+    auto secret_key = read_secret_key(prms);
 
     // Output setup
     auto pred_path = prms.encrypted_model_predictions_file();
@@ -52,6 +52,11 @@ int main(int argc, char* argv[]) {
         // taking the decrypted result happens in the client side ( with taking the argmax - logits)
         auto logits = mlp_decrypt(context, secret_key, ctxt);
         constexpr int kNumClasses = 10;
+        std::cout << "[debug] Logits for sample " << i << ": ";
+        for (int j = 0; j < kNumClasses; ++j) {
+            std::cout << std::fixed << std::setprecision(4) << logits[j] << (j == kNumClasses - 1 ? "" : ", ");
+        }
+        std::cout << std::endl;
         int pred = argmax(logits.data(), kNumClasses);
         out << pred << '\n';
     }

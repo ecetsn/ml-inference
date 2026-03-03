@@ -7,7 +7,7 @@
 
 #include "params.h"
 #include "utils.h"
-#include "heongpu.cuh"
+#include <heongpu/heongpu.hpp>
  
 
 int main(int argc, char* argv[]) {
@@ -27,17 +27,16 @@ int main(int argc, char* argv[]) {
     cudaSetDevice(0); // Use it for memory pool
 
     // Initialize encryption parameters for the CKKS scheme
-    heongpu::HEContext<Scheme> context(
-        heongpu::keyswitching_type::KEYSWITCHING_METHOD_I);
+    heongpu::HEContext<Scheme> context = heongpu::GenHEContext<Scheme>();
 
     size_t poly_modulus_degree = 16384;
-    context.set_poly_modulus_degree(poly_modulus_degree);
+    context->set_poly_modulus_degree(poly_modulus_degree);
     // Extend the modulus chain so we have more rescale levels for deep MLP ops.
-    context.set_coeff_modulus_bit_sizes(
+    context->set_coeff_modulus_bit_sizes(
         {40, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30},
         {60});
-    context.generate();
-    context.print_parameters();
+    context->generate();
+    context->print_parameters();
 
     size_t in_dim = 1024; // change according to weight inp
     int B = 32;
@@ -76,7 +75,7 @@ int main(int argc, char* argv[]) {
     fs::create_directories(prms.pubkeydir());
     fs::create_directories(prms.seckeydir());
 
-    heongpu::serializer::save_to_file(context, prms.pubkeydir()/"cc.bin");
+    heongpu::serializer::save_to_file(*context, prms.pubkeydir()/"cc.bin");
     heongpu::serializer::save_to_file(public_key, prms.pubkeydir()/"pk.bin");
     heongpu::serializer::save_to_file(secret_key, prms.seckeydir()/"sk.bin");
     heongpu::serializer::save_to_file(galois_key, prms.pubkeydir()/"rk.bin");

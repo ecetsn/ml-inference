@@ -5,7 +5,7 @@
 #include <string>
 
 #include "params.h"           // contains Scheme typedef
-#include "heongpu.cuh"        // HEonGPU types/operators
+#include <heongpu/heongpu.hpp>
 #include "utils.h"
 #include "mlp_encryption_utils.h"   // for DenseWeights + weight loader
 

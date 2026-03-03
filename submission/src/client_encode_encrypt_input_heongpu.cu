@@ -35,10 +35,8 @@ int main(int argc, char* argv[]) {
     cudaSetDevice(0);
 
     // Load HE artifacts
-    auto context = heongpu::serializer::load_from_file<heongpu::HEContext<Scheme>>(
-        prms.pubkeydir() / "cc.bin");
-    auto publicKey = heongpu::serializer::load_from_file<heongpu::Publickey<Scheme>>(
-        prms.pubkeydir() / "pk.bin");
+    auto context = read_context(prms);
+    auto publicKey = read_public_key(prms);
 
     // Dataset
     std::vector<Sample> dataset;
@@ -62,7 +60,7 @@ int main(int argc, char* argv[]) {
         std::vector<double> vec;
         vec.reserve(NORMALIZED_DIM);
         for (size_t j = 0; j < static_cast<size_t>(NORMALIZED_DIM); ++j) {
-            vec.push_back(static_cast<double>(in_f[j]));
+            vec.push_back(static_cast<double>(in_f[j]) / 255.0);
         }
 
         heongpu::Plaintext<Scheme>  plain(context);

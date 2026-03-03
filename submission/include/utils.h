@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "heongpu.cuh"
+#include <heongpu/heongpu.hpp>
 
 namespace fs = std::filesystem;
 

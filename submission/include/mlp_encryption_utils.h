@@ -9,7 +9,7 @@
 
 #include "utils.h"
 #include "params.h"
-#include "heongpu.cuh"
+#include <heongpu/heongpu.hpp>
 
 namespace fs = std::filesystem;
 
@@ -36,14 +36,12 @@ heongpu::Relinkey<Scheme>  read_relin_key(const InstanceParams& prms);
 heongpu::Galoiskey<Scheme> read_galois_key(const InstanceParams& prms);
 
 // MLP / HE helper functions
-// NOTE: matches your .cpp: input is std::vector<float>
 heongpu::Ciphertext<Scheme> mlp_encrypt(
     heongpu::HEContext<Scheme>&  ctx,
     heongpu::Publickey<Scheme>&  pk,
     const std::vector<float>&    input
 );
 
-// NOTE: matches your .cpp: no out_len parameter
 std::vector<float> mlp_decrypt(
     heongpu::HEContext<Scheme>&  ctx,
     heongpu::Secretkey<Scheme>&  sk,

@@ -5,7 +5,7 @@
 
 #include "params.h"
 #include "utils.h"
-#include "heongpu.cuh"
+#include <heongpu/heongpu.hpp>
 #include "mlp_encryption_utils.h"
 #include <chrono>
 #include <iostream>
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     auto public_key = read_public_key(prms);
     auto galois_key = read_galois_key(prms);
     auto relin_key  = read_relin_key(prms);
-    auto weights_dir = prms.rtdir() / "src" / "Mlp_Weights";
+    auto weights_dir = prms.rtdir() / "submission" / "src" / "Mlp_Weights";
     DenseWeights W_fc1 = load_fc_weights_txt((weights_dir / "fc1.txt").string(),
                                              FC1_IN_DIM, FC1_OUT_DIM);
     DenseWeights W_fc2 = load_fc_weights_txt((weights_dir / "fc2.txt").string(),
