@@ -3,15 +3,17 @@ from pathlib import Path
 
 def diagonalize(matrix):
     """
-    Transform an NxN matrix into its Halevi-Shoup diagonals.
-    Mapping: d_k[i] = matrix[i, (i-k)%N]
+    Diagonalizes a weight matrix for HS MatVec with left rotations.
+    y = x @ Matrix (x and y are row vectors)
+    Mapping: D[k]_i = Matrix[(i + k) % N, i]
+    where k is the diagonal index (and rotation amount), 
+    and i is the slot index (and output index).
     """
     N = matrix.shape[0]
     diagonals = np.zeros((N, N))
     for k in range(N):
         for i in range(N):
-            # Diagonal k: v^{(k)}_i = W_{i, (i-k)%N}
-            diagonals[k, i] = matrix[i, (i - k) % N]
+            diagonals[k, i] = matrix[(i + k) % N, i]
     return diagonals
 
 def main():
@@ -19,26 +21,25 @@ def main():
     output_dir = Path("submission/src/Mlp_Weights")
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Scaling factor for ReLU stability (pre-activations in [-1, 1])
+    f = 0.1
+    
     for name in ["fc1", "fc2"]:
         npy_path = weights_dir / f"{name}.npy"
-        if not npy_path.exists():
-            print(f"[ERROR] {npy_path} not found.")
-            continue
-        
         print(f"[INFO] Processing {npy_path}...")
-        W_loaded = np.load(npy_path)
-        W_actual = W_loaded.T
+        W_actual = np.load(npy_path)
         
-        if W_actual.shape != (1024, 1024):
-            print(f"[WARNING] Unexpected shape {W_actual.shape} for {name}")
-
-        W_diag = diagonalize(W_actual)
+        # Apply scaling
+        if name == "fc1":
+            W_final = W_actual * f
+        else:
+            W_final = W_actual * (1.0 / f)
+            
+        W_diag = diagonalize(W_final)
         
         txt_path = output_dir / f"{name}.txt"
-        print(f"[INFO] Saving diagonalized weights to {txt_path}...")
+        print(f"[INFO] Saving diagonalized weights to {txt_path} with scale factor...")
         np.savetxt(txt_path, W_diag, fmt="%.8f")
-
-    print("[SUCCESS] Weight diagonalization complete.")
 
 if __name__ == "__main__":
     main()

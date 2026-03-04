@@ -72,9 +72,11 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
                 op.rotate_rows(x_block[b], x_rot, rk, j * kBlockSize);
             }
 
-            std::vector<double> row_plain(slot_count, 0.0);
+            std::vector<double> row_plain(slot_count);
             const double* prow = &W.data[idx * out_dim];
-            std::copy(prow, prow + out_dim, row_plain.begin());
+            for (size_t k = 0; k < slot_count / out_dim; ++k) {
+                std::copy(prow, prow + out_dim, row_plain.begin() + k * out_dim);
+            }
 
             heongpu::Plaintext<Scheme> pt_row(he);
             enc.encode(pt_row, row_plain, kDefaultScale);
@@ -274,9 +276,11 @@ heongpu::Ciphertext<Scheme> mlp_heongpu(
     heongpu::Relinkey<Scheme>& mk) {
     int depth = 0;
     auto h_ct = dense_matvec_naive(he, x_ct, W1, pk, op, rk, enc, mk, depth);
-    std::cerr << "[debug] Before activation depth=" << depth << std::endl;
+    // DEBUG: return intermediate for one run
+    // return h_ct; 
+    std::cerr << "[debug] Before activation depth=" << depth << " scale=" << h_ct.scale() << std::endl;
     h_ct = approx_relu_ct(he, h_ct, op, enc, mk, depth);
-    std::cerr << "[debug] After activation depth=" << depth << std::endl;
+    std::cerr << "[debug] After activation depth=" << depth << " scale=" << h_ct.scale() << std::endl;
     auto y_ct = dense_matvec_naive(he, h_ct, W2, pk, op, rk, enc, mk, depth);
     return y_ct;
 }

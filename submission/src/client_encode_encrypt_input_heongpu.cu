@@ -57,10 +57,13 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 0; i < dataset.size(); ++i) {
         const float* in_f = dataset[i].image;
+        size_t slot_count = context->get_poly_modulus_degree() / 2;
         std::vector<double> vec;
-        vec.reserve(NORMALIZED_DIM);
-        for (size_t j = 0; j < static_cast<size_t>(NORMALIZED_DIM); ++j) {
-            vec.push_back(static_cast<double>(in_f[j]) / 255.0);
+        vec.reserve(slot_count);
+        for (size_t k = 0; k < slot_count / NORMALIZED_DIM; ++k) {
+            for (size_t j = 0; j < static_cast<size_t>(NORMALIZED_DIM); ++j) {
+                vec.push_back(static_cast<double>(in_f[j]));
+            }
         }
 
         heongpu::Plaintext<Scheme>  plain(context);

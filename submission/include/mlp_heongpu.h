@@ -25,8 +25,8 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
     heongpu::Relinkey<Scheme>& mk,
     int& depth);
 
-// Approximate ReLU using quadratic polynomial
-heongpu::Ciphertext<Scheme> approx_relu_quadratic_ct(
+// Approximate ReLU using polynomial
+heongpu::Ciphertext<Scheme> approx_relu_ct(
     heongpu::HEContext<Scheme>& he,
     heongpu::Ciphertext<Scheme>& x,
     heongpu::HEArithmeticOperator<Scheme>& op,
