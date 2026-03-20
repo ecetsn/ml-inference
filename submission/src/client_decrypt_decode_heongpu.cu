@@ -52,11 +52,11 @@ int main(int argc, char* argv[]) {
         // taking the decrypted result happens in the client side ( with taking the argmax - logits)
         auto logits = mlp_decrypt(context, secret_key, ctxt);
         constexpr int kNumClasses = 10;
-        std::cout << "[debug] Logits for sample " << i << ": ";
-        for (int j = 0; j < kNumClasses; ++j) {
-            std::cout << std::fixed << std::setprecision(4) << logits[j] << (j == kNumClasses - 1 ? "" : ", ");
-        }
-        std::cout << std::endl;
+        //std::cout << "[debug] Logits for sample " << i << ": ";
+        //for (int j = 0; j < kNumClasses; ++j) {
+            //std::cout << std::fixed << std::setprecision(4) << logits[j] << (j == kNumClasses - 1 ? "" : ", ");
+        //}
+        //std::cout << std::endl;
         int pred = argmax(logits.data(), kNumClasses);
         out << pred << '\n';
     }

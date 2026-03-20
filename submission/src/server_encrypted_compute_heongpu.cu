@@ -47,8 +47,8 @@ int main(int argc, char* argv[]) {
     heongpu::HEEncoder<Scheme> encoder(context);
     heongpu::HEArithmeticOperator<Scheme> op(context, encoder);
 
-    std::cout << "W1: in_dim=" << W_fc1.in_dim << " out_dim=" << W_fc1.out_dim << std::endl;
-    std::cout << "W2: in_dim=" << W_fc2.in_dim << " out_dim=" << W_fc2.out_dim << std::endl;
+    //std::cout << "W1: in_dim=" << W_fc1.in_dim << " out_dim=" << W_fc1.out_dim << std::endl;
+    //std::cout << "W2: in_dim=" << W_fc2.in_dim << " out_dim=" << W_fc2.out_dim << std::endl;
 
 
     // Process encrypted inputs

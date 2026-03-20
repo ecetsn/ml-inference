@@ -38,29 +38,27 @@ int main(int argc, char* argv[]) {
     context->generate();
     context->print_parameters();
 
-    size_t in_dim = 1024; // change according to weight inp
+    size_t in_dim = 1024;
     int B = 32;
     int T = static_cast<int>((in_dim + B - 1) / B);
     std::vector<int> rotations;
     rotations.reserve((B - 1) + (T - 1));
 
+    // baby steps
     for (int b = 1; b < B; ++b) {
     rotations.push_back(b);
     }
-
+    // giant steps
     for (int j = 1; j < T; ++j) {
     rotations.push_back(j * B);
     }
     std::sort(rotations.begin(), rotations.end());
     rotations.erase(std::unique(rotations.begin(), rotations.end()), rotations.end());
-
     
 
     heongpu::HEKeyGenerator<Scheme> keygen(context);
     heongpu::Secretkey<Scheme> secret_key(context);
-    // Request only the rotations we actually use in dense_matvec_naive
-    // (b=1..31 and block offsets of kBlockSize=32). Generating a custom
-    // Galois key avoids missing-rotation failures at runtime.
+    // Rotation keys needed according to the baby step giant step algorithm
     heongpu::Galoiskey<Scheme> galois_key(context, rotations);
     heongpu::Relinkey<Scheme> relin_key(context);
 

@@ -31,14 +31,14 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
     }
     
     // Debug: Check weight range and first few values
-    double w_min = W.data[0], w_max = W.data[0];
-    for (double d : W.data) {
-        w_min = std::min(w_min, d);
-        w_max = std::max(w_max, d);
-    }
-    std::cerr << "[debug] DenseMatVec weights: range=[" << w_min << ", " << w_max << "], first5=[";
-    for (int i=0; i<5 && i<W.data.size(); ++i) std::cerr << W.data[i] << (i==4?"":", ");
-    std::cerr << "]" << std::endl;
+    //double w_min = W.data[0], w_max = W.data[0];
+    //for (double d : W.data) {
+        //w_min = std::min(w_min, d);
+        //w_max = std::max(w_max, d);
+    //}
+    //std::cerr << "[debug] DenseMatVec weights: range=[" << w_min << ", " << w_max << "], first5=[";
+    //for (int i=0; i<5 && i<W.data.size(); ++i) std::cerr << W.data[i] << (i==4?"":", ");
+    //std::cerr << "]" << std::endl;
     if (out_dim > slot_count) {
         throw std::invalid_argument("dense_matvec_naive: out_dim exceeds slot count; weights must be packed as diagonals");
     }
@@ -84,9 +84,9 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
                 try {
                     op.mod_drop_inplace(pt_row);
                 } catch (const std::exception& e) {
-                    std::cerr << "[debug] mod_drop failure in dense_matvec_naive (idx="
-                              << idx << ", depth=" << depth << "): "
-                              << e.what() << std::endl;
+                    //std::cerr << "[debug] mod_drop failure in dense_matvec_naive (idx="
+                              //<< idx << ", depth=" << depth << "): "
+                              //<< e.what() << std::endl;
                     throw;
                 }
             }
@@ -117,8 +117,8 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
             op.rescale_inplace(y_ct);
             ++depth;
         } catch (const std::exception& e) {
-            std::cerr << "[debug] rescale failure in dense_matvec_naive (final): "
-                      << e.what() << std::endl;
+            //std::cerr << "[debug] rescale failure in dense_matvec_naive (final): "
+                      //<< e.what() << std::endl;
             throw;
         }
     }
@@ -143,20 +143,20 @@ heongpu::Ciphertext<Scheme> approx_relu_ct(
 auto safe_rescale = [&](heongpu::Ciphertext<Scheme>& ct,
                         int* level,
                         const char* ctx) {
-    std::cerr << "[debug] before rescale in " << ctx
-              << " depth=" << ct.depth()
-              << " level=" << (level ? *level : -1) << std::endl;
+    //std::cerr << "[debug] before rescale in " << ctx
+              //<< " depth=" << ct.depth()
+              //<< " level=" << (level ? *level : -1) << std::endl;
     try {
         op.rescale_inplace(ct);
         if (level) {
             ++(*level);
         }
-        std::cerr << "[debug] after rescale in " << ctx
-                  << " depth=" << ct.depth()
-                  << " level=" << (level ? *level : -1) << std::endl;
+        //std::cerr << "[debug] after rescale in " << ctx
+                  //<< " depth=" << ct.depth()
+                  //<< " level=" << (level ? *level : -1) << std::endl;
     } catch (const std::exception& e) {
-        std::cerr << "[debug] RESCALE FAILURE in " << ctx
-                  << ": " << e.what() << std::endl;
+        //std::cerr << "[debug] RESCALE FAILURE in " << ctx
+                  //<< ": " << e.what() << std::endl;
         throw;
     }
 };
@@ -168,9 +168,9 @@ auto safe_rescale = [&](heongpu::Ciphertext<Scheme>& ct,
             try {
                 op.mod_drop_inplace(pt);
             } catch (const std::exception& e) {
-                std::cerr << "[debug] mod_drop failure in " << ctx
-                          << " (drop " << (i + 1) << "/" << target_level
-                          << "): " << e.what() << std::endl;
+                //std::cerr << "[debug] mod_drop failure in " << ctx
+                          //<< " (drop " << (i + 1) << "/" << target_level
+                          //<< "): " << e.what() << std::endl;
                 throw;
             }
         }
@@ -203,8 +203,8 @@ auto safe_rescale = [&](heongpu::Ciphertext<Scheme>& ct,
                 op.mod_drop_inplace(ct);
                 ++lvl;
             } catch (const std::exception& e) {
-                std::cerr << "[debug] mod_drop failure in " << ctx
-                          << ": " << e.what() << std::endl;
+                //std::cerr << "[debug] mod_drop failure in " << ctx
+                          //<< ": " << e.what() << std::endl;
                 throw;
             }
         }
@@ -278,9 +278,9 @@ heongpu::Ciphertext<Scheme> mlp_heongpu(
     auto h_ct = dense_matvec_naive(he, x_ct, W1, pk, op, rk, enc, mk, depth);
     // DEBUG: return intermediate for one run
     // return h_ct; 
-    std::cerr << "[debug] Before activation depth=" << depth << " scale=" << h_ct.scale() << std::endl;
+    //std::cerr << "[debug] Before activation depth=" << depth << " scale=" << h_ct.scale() << std::endl;
     h_ct = approx_relu_ct(he, h_ct, op, enc, mk, depth);
-    std::cerr << "[debug] After activation depth=" << depth << " scale=" << h_ct.scale() << std::endl;
+    //std::cerr << "[debug] After activation depth=" << depth << " scale=" << h_ct.scale() << std::endl;
     auto y_ct = dense_matvec_naive(he, h_ct, W2, pk, op, rk, enc, mk, depth);
     return y_ct;
 }
