@@ -13,6 +13,14 @@
 // Homomorphic MLP building blocks (declarations only)
 // -----------------------------------------------------------------------------
 
+// Pre-encode weights to avoid CPU bottleneck during inference
+void pre_encode_weights(
+    heongpu::HEContext<Scheme>& he,
+    DenseWeights& W,
+    heongpu::HEEncoder<Scheme>& enc,
+    heongpu::HEArithmeticOperator<Scheme>& op,
+    int depth);
+
 // Naive dense matvec: y = x * W   (x is encrypted)
 heongpu::Ciphertext<Scheme> dense_matvec_naive(
     heongpu::HEContext<Scheme>& he,

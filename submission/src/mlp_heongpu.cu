@@ -12,6 +12,35 @@ constexpr double kDefaultScale = static_cast<double>(1ULL << 30);
 constexpr double kPolyInputScale = static_cast<double>(1ULL << 40);
 }
 
+void pre_encode_weights(
+    heongpu::HEContext<Scheme>& he,
+    DenseWeights& W,
+    heongpu::HEEncoder<Scheme>& enc,
+    heongpu::HEArithmeticOperator<Scheme>& op,
+    int depth) {
+    const size_t slot_count = he->get_poly_modulus_degree() / 2;
+    const size_t in_dim = W.in_dim;
+    const size_t out_dim = W.out_dim;
+
+    W.plain_weights.clear();
+    W.plain_weights.reserve(in_dim);
+
+    for (size_t idx = 0; idx < in_dim; ++idx) {
+        std::vector<double> row_plain(slot_count);
+        const double* prow = &W.data[idx * out_dim];
+        for (size_t k = 0; k < slot_count / out_dim; ++k) {
+            std::copy(prow, prow + out_dim, row_plain.begin() + k * out_dim);
+        }
+
+        heongpu::Plaintext<Scheme> pt_row(he);
+        enc.encode(pt_row, row_plain, kDefaultScale);
+        for (int d = 0; d < depth; ++d) {
+            op.mod_drop_inplace(pt_row);
+        }
+        W.plain_weights.push_back(std::move(pt_row));
+    }
+}
+
 heongpu::Ciphertext<Scheme> dense_matvec_naive(
     heongpu::HEContext<Scheme>& he,
     heongpu::Ciphertext<Scheme>& x_ct,
@@ -72,22 +101,23 @@ heongpu::Ciphertext<Scheme> dense_matvec_naive(
                 op.rotate_rows(x_block[b], x_rot, rk, j * kBlockSize);
             }
 
-            std::vector<double> row_plain(slot_count);
-            const double* prow = &W.data[idx * out_dim];
-            for (size_t k = 0; k < slot_count / out_dim; ++k) {
-                std::copy(prow, prow + out_dim, row_plain.begin() + k * out_dim);
-            }
-
             heongpu::Plaintext<Scheme> pt_row(he);
-            enc.encode(pt_row, row_plain, kDefaultScale);
-            for (int d = 0; d < depth; ++d) {
-                try {
-                    op.mod_drop_inplace(pt_row);
-                } catch (const std::exception& e) {
-                    //std::cerr << "[debug] mod_drop failure in dense_matvec_naive (idx="
-                              //<< idx << ", depth=" << depth << "): "
-                              //<< e.what() << std::endl;
-                    throw;
+            if (W.plain_weights.size() > idx) {
+                pt_row = W.plain_weights[idx];
+            } else {
+                std::vector<double> row_plain(slot_count);
+                const double* prow = &W.data[idx * out_dim];
+                for (size_t k = 0; k < slot_count / out_dim; ++k) {
+                    std::copy(prow, prow + out_dim, row_plain.begin() + k * out_dim);
+                }
+
+                enc.encode(pt_row, row_plain, kDefaultScale);
+                for (int d = 0; d < depth; ++d) {
+                    try {
+                        op.mod_drop_inplace(pt_row);
+                    } catch (const std::exception& e) {
+                        throw;
+                    }
                 }
             }
 

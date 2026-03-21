@@ -26,6 +26,8 @@ struct DenseWeights {
     std::size_t out_dim;     // output size
     // row-major: row i starts at i * out_dim
     std::vector<double> data;
+    // Pre-encoded plaintexts for each diagonal/row
+    std::vector<heongpu::Plaintext<Scheme>> plain_weights;
 };
 
 // Function declarations (non-templated HE I/O)

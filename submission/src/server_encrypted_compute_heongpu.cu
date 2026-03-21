@@ -50,6 +50,11 @@ int main(int argc, char* argv[]) {
     //std::cout << "W1: in_dim=" << W_fc1.in_dim << " out_dim=" << W_fc1.out_dim << std::endl;
     //std::cout << "W2: in_dim=" << W_fc2.in_dim << " out_dim=" << W_fc2.out_dim << std::endl;
 
+    // Pre-encode weights to avoid redundant CPU encoding in the inference loop
+    std::cout << "         [server] Pre-encoding weights (CPU intensive)..." << std::endl;
+    pre_encode_weights(context, W_fc1, encoder, op, 0);  // FC1 at level 0
+    pre_encode_weights(context, W_fc2, encoder, op, 10); // FC2 at level 10
+
 
     // Process encrypted inputs
     fs::create_directories(prms.ctxtdowndir());
