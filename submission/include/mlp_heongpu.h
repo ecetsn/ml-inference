@@ -9,10 +9,6 @@
 #include "utils.h"
 #include "mlp_encryption_utils.h"   // for DenseWeights + weight loader
 
-// -----------------------------------------------------------------------------
-// Homomorphic MLP building blocks (declarations only)
-// -----------------------------------------------------------------------------
-
 // Pre-encode weights to avoid CPU bottleneck during inference
 void pre_encode_weights(
     heongpu::HEContext<Scheme>& he,

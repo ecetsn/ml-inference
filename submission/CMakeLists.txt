@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.23)
 project(add_heongpu LANGUAGES CXX CUDA)
+
+find_package(OpenMP REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
@@ -66,7 +67,7 @@ set(MY_EXECUTABLES
 # Apply the same properties and libraries to each
 foreach(EXE ${MY_EXECUTABLES})
     # Link against the 'heongpu' target provided by add_subdirectory
-    target_link_libraries(${EXE} PRIVATE heongpu CUDA::cudart)
+    target_link_libraries(${EXE} PRIVATE heongpu CUDA::cudart OpenMP::OpenMP_CXX)
     set_target_properties(${EXE} PROPERTIES 
         CUDA_SEPARABLE_COMPILATION ON
         CUDA_RESOLVE_DEVICE_SYMBOLS ON

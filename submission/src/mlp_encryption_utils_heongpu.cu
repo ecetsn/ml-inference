@@ -132,6 +132,39 @@ void load_dataset(std::vector<Sample>& dataset, const char* filename) {
     }
 }
 
+void save_batch(const std::vector<heongpu::Ciphertext<Scheme>>& batch, const fs::path& path) {
+    std::ofstream out(path, std::ios::binary);
+    if (!out.is_open()) {
+        throw std::runtime_error("save_batch: Cannot open " + path.string());
+    }
+    uint64_t count = batch.size();
+    out.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    for (const auto& ct : batch) {
+        auto data = heongpu::serializer::serialize(ct);
+        uint64_t size = data.size();
+        out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        out.write(reinterpret_cast<const char*>(data.data()), size);
+    }
+}
+
+void load_batch(std::vector<heongpu::Ciphertext<Scheme>>& batch, const fs::path& path, heongpu::HEContext<Scheme>& context) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in.is_open()) {
+        throw std::runtime_error("load_batch: Cannot open " + path.string());
+    }
+    uint64_t count = 0;
+    in.read(reinterpret_cast<char*>(&count), sizeof(count));
+    batch.clear();
+    batch.reserve(count);
+    for (uint64_t i = 0; i < count; ++i) {
+        uint64_t size;
+        in.read(reinterpret_cast<char*>(&size), sizeof(size));
+        std::vector<uint8_t> buffer(size);
+        in.read(reinterpret_cast<char*>(buffer.data()), size);
+        batch.push_back(heongpu::serializer::deserialize<heongpu::Ciphertext<Scheme>>(buffer));
+    }
+}
+
 int argmax(float* values, int count) {
     if (count <= 0) {
         return -1;

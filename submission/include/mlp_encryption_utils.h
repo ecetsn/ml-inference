@@ -54,6 +54,10 @@ std::vector<float> mlp_decrypt(
 void load_dataset(std::vector<Sample>& dataset, const char* filename);
 int  argmax(float* A, int N);
 
+// Batch serialization utilities
+void save_batch(const std::vector<heongpu::Ciphertext<Scheme>>& batch, const fs::path& path);
+void load_batch(std::vector<heongpu::Ciphertext<Scheme>>& batch, const fs::path& path, heongpu::HEContext<Scheme>& context);
+
 // Fully-connected weight loading 
 DenseWeights load_fc_weights_txt(
     const std::string& path,

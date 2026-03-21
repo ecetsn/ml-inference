@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     const auto repo_root = submission_root.parent_path();
     InstanceParams prms(size, repo_root);
 
-    cudaSetDevice(0); // Use it for memory pool
+    cudaSetDevice(0);
 
     // Initialize encryption parameters for the CKKS scheme
     heongpu::HEContext<Scheme> context = heongpu::GenHEContext<Scheme>();

@@ -63,25 +63,36 @@ int main(int argc, char* argv[]) {
     const size_t DISTINCT_PACKING = 4;
     const size_t num_batches = (prms.getBatchSize() + DISTINCT_PACKING - 1) / DISTINCT_PACKING;
 
-    for (size_t i = 0; i < num_batches; ++i) {
-        auto input_ctxt_path = prms.ctxtupdir() / ("cipher_input_" + std::to_string(i) + ".bin");
-        auto ctxt_input = heongpu::serializer::load_from_file<heongpu::Ciphertext<Scheme>>(input_ctxt_path);
+    std::vector<heongpu::Ciphertext<Scheme>> input_batches;
+    std::vector<heongpu::Ciphertext<Scheme>> result_batches;
+    result_batches.reserve(num_batches);
 
+    std::cout << "         [server] Loading all input batches from single file..." << std::endl;
+    load_batch(input_batches, prms.ctxtupdir() / "cipher_input_batch.bin", context);
+
+    if (input_batches.size() != num_batches) {
+        throw std::runtime_error("Server: Loaded batch size does not match expected size");
+    }
+
+    for (size_t i = 0; i < num_batches; ++i) {
         auto start = std::chrono::high_resolution_clock::now();
 
         // Perform encrypted inference
-        // implement this MLP version using HEonGPU operators 
-        auto ctxt_result = mlp_heongpu(context, ctxt_input, W_fc1, W_fc2,
+        auto ctxt_result = mlp_heongpu(context, input_batches[i], W_fc1, W_fc2,
                                        public_key, op, galois_key, encoder, relin_key);
 
         auto end = std::chrono::high_resolution_clock::now();
         double duration = std::chrono::duration<double>(end - start).count();
-        std::cout << "         [server] Execution time for batch " << i 
-                  << " (up to " << DISTINCT_PACKING << " samples) : " << duration << " seconds" << std::endl;
+        if (i % 100 == 0 || i == num_batches - 1) {
+            std::cout << "         [server] Execution time for batch " << i 
+                      << " (up to " << DISTINCT_PACKING << " samples) : " << duration << " seconds" << std::endl;
+        }
 
-        auto result_ctxt_path = prms.ctxtdowndir() / ("cipher_result_" + std::to_string(i) + ".bin");
-        heongpu::serializer::save_to_file(ctxt_result, result_ctxt_path);
+        result_batches.push_back(std::move(ctxt_result));
     }
+
+    std::cout << "         [server] Saving all result batches to single file..." << std::endl;
+    save_batch(result_batches, prms.ctxtdowndir() / "cipher_result_batch.bin");
 
     std::cout << "         [server] All ciphertexts processed successfully." << std::endl;
     return 0;
