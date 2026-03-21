@@ -45,20 +45,27 @@ int main(int argc, char* argv[]) {
         throw std::runtime_error("Failed to open output predictions file: " + pred_path.string());
     }
 
+    const size_t DISTINCT_PACKING = 4;
+    const size_t num_batches = (prms.getBatchSize() + DISTINCT_PACKING - 1) / DISTINCT_PACKING;
+
     // Batch decryption loop
-    for (size_t i = 0; i < prms.getBatchSize(); ++i) {
+    for (size_t i = 0; i < num_batches; ++i) {
         auto ctxt_path = prms.ctxtdowndir() / ("cipher_result_" + std::to_string(i) + ".bin");
         auto ctxt = heongpu::serializer::load_from_file<heongpu::Ciphertext<Scheme>>(ctxt_path);
-        // taking the decrypted result happens in the client side ( with taking the argmax - logits)
-        auto logits = mlp_decrypt(context, secret_key, ctxt);
+        
+        // Decrypt all slots at once (containing 4 images repeated twice)
+        auto full_logits = mlp_decrypt(context, secret_key, ctxt);
         constexpr int kNumClasses = 10;
-        //std::cout << "[debug] Logits for sample " << i << ": ";
-        //for (int j = 0; j < kNumClasses; ++j) {
-            //std::cout << std::fixed << std::setprecision(4) << logits[j] << (j == kNumClasses - 1 ? "" : ", ");
-        //}
-        //std::cout << std::endl;
-        int pred = argmax(logits.data(), kNumClasses);
-        out << pred << '\n';
+
+        for (size_t k = 0; k < DISTINCT_PACKING; ++k) {
+            size_t sample_idx = i * DISTINCT_PACKING + k;
+            if (sample_idx < prms.getBatchSize()) {
+                // Each unique image k starts at slot (2*k * 1024) due to Cyclic Tiling [A,A,B,B,C,C,D,D]
+                float* sample_logits = &full_logits[2 * k * NORMALIZED_DIM];
+                int pred = argmax(sample_logits, kNumClasses);
+                out << pred << '\n';
+            }
+        }
     }
 
     std::cout << "[Info] Successfully wrote predictions to " << pred_path << "\n";

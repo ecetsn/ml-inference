@@ -60,7 +60,10 @@ int main(int argc, char* argv[]) {
     fs::create_directories(prms.ctxtdowndir());
     std::cout << "         [server] Running encrypted MLP inference..." << std::endl;
 
-    for (size_t i = 0; i < prms.getBatchSize(); ++i) {
+    const size_t DISTINCT_PACKING = 4;
+    const size_t num_batches = (prms.getBatchSize() + DISTINCT_PACKING - 1) / DISTINCT_PACKING;
+
+    for (size_t i = 0; i < num_batches; ++i) {
         auto input_ctxt_path = prms.ctxtupdir() / ("cipher_input_" + std::to_string(i) + ".bin");
         auto ctxt_input = heongpu::serializer::load_from_file<heongpu::Ciphertext<Scheme>>(input_ctxt_path);
 
@@ -73,8 +76,8 @@ int main(int argc, char* argv[]) {
 
         auto end = std::chrono::high_resolution_clock::now();
         double duration = std::chrono::duration<double>(end - start).count();
-        std::cout << "         [server] Execution time for ciphertext " << i 
-                  << " : " << duration << " seconds" << std::endl;
+        std::cout << "         [server] Execution time for batch " << i 
+                  << " (up to " << DISTINCT_PACKING << " samples) : " << duration << " seconds" << std::endl;
 
         auto result_ctxt_path = prms.ctxtdowndir() / ("cipher_result_" + std::to_string(i) + ".bin");
         heongpu::serializer::save_to_file(ctxt_result, result_ctxt_path);

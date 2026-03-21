@@ -55,14 +55,29 @@ int main(int argc, char* argv[]) {
 
     fs::create_directories(prms.ctxtupdir());
 
-    for (size_t i = 0; i < dataset.size(); ++i) {
-        const float* in_f = dataset[i].image;
+    const size_t DISTINCT_PACKING = 4;
+    const size_t REPEATS = 2;
+
+    for (size_t i = 0; i < dataset.size(); i += DISTINCT_PACKING) {
         size_t slot_count = context->get_poly_modulus_degree() / 2;
         std::vector<double> vec;
         vec.reserve(slot_count);
-        for (size_t k = 0; k < slot_count / NORMALIZED_DIM; ++k) {
-            for (size_t j = 0; j < static_cast<size_t>(NORMALIZED_DIM); ++j) {
-                vec.push_back(static_cast<double>(in_f[j]));
+
+        for (size_t k = 0; k < DISTINCT_PACKING; ++k) {
+            size_t sample_idx = i + k;
+            if (sample_idx < dataset.size()) {
+                const float* in_f = dataset[sample_idx].image;
+                for (size_t r = 0; r < REPEATS; ++r) {
+                    for (size_t j = 0; j < static_cast<size_t>(NORMALIZED_DIM); ++j) {
+                        vec.push_back(static_cast<double>(in_f[j]));
+                    }
+                }
+            } else {
+                for (size_t r = 0; r < REPEATS; ++r) {
+                    for (size_t j = 0; j < static_cast<size_t>(NORMALIZED_DIM); ++j) {
+                        vec.push_back(0.0);
+                    }
+                }
             }
         }
 
@@ -73,7 +88,7 @@ int main(int argc, char* argv[]) {
         encryptor.encrypt(ctxt, plain);
 
         if (!countOnly) {
-            auto outPath = prms.ctxtupdir() / ("cipher_input_" + std::to_string(i) + ".bin");
+            auto outPath = prms.ctxtupdir() / ("cipher_input_" + std::to_string(i / DISTINCT_PACKING) + ".bin");
             heongpu::serializer::save_to_file(ctxt, outPath);
         }
     }
