@@ -20,16 +20,8 @@ heongpu::HEContext<Scheme> read_context(const InstanceParams& prms) {
     std::ifstream ifs(path, std::ios::binary);
     if (!ifs) throw std::runtime_error("Cannot open context file: " + path.string());
 
-    uint64_t size;
-    ifs.read(reinterpret_cast<char*>(&size), sizeof(size));
-    std::vector<uint8_t> buffer(size);
-    ifs.read(reinterpret_cast<char*>(buffer.data()), size);
-
-    std::stringstream ss;
-    heongpu::serializer::from_buffer(ss, heongpu::serializer::decompress(buffer));
-
     auto context = heongpu::GenHEContext<Scheme>();
-    context->load(ss);
+    context->load(ifs);
     return context;
 }
 
@@ -38,7 +30,10 @@ heongpu::Publickey<Scheme> read_public_key(const InstanceParams& prms) {
     if (!fs::exists(path)) {
         throw std::runtime_error("read_public_key: missing " + path.string());
     }
-    return heongpu::serializer::load_from_file<heongpu::Publickey<Scheme>>(path);
+    std::ifstream ifs(path, std::ios::binary);
+    heongpu::Publickey<Scheme> pk;
+    pk.load(ifs);
+    return pk;
 }
 
 heongpu::Secretkey<Scheme> read_secret_key(const InstanceParams& prms) {
@@ -46,7 +41,10 @@ heongpu::Secretkey<Scheme> read_secret_key(const InstanceParams& prms) {
     if (!fs::exists(path)) {
         throw std::runtime_error("read_secret_key: missing " + path.string());
     }
-    return heongpu::serializer::load_from_file<heongpu::Secretkey<Scheme>>(path);
+    std::ifstream ifs(path, std::ios::binary);
+    heongpu::Secretkey<Scheme> sk;
+    sk.load(ifs);
+    return sk;
 }
 
 heongpu::Relinkey<Scheme> read_relin_key(const InstanceParams& prms) {
@@ -54,7 +52,10 @@ heongpu::Relinkey<Scheme> read_relin_key(const InstanceParams& prms) {
     if (!fs::exists(path)) {
         throw std::runtime_error("read_relin_key: missing " + path.string());
     }
-    return heongpu::serializer::load_from_file<heongpu::Relinkey<Scheme>>(path);
+    std::ifstream ifs(path, std::ios::binary);
+    heongpu::Relinkey<Scheme> rk;
+    rk.load(ifs);
+    return rk;
 }
 
 heongpu::Galoiskey<Scheme> read_galois_key(const InstanceParams& prms) {
@@ -62,7 +63,10 @@ heongpu::Galoiskey<Scheme> read_galois_key(const InstanceParams& prms) {
     if (!fs::exists(path)) {
         throw std::runtime_error("read_galois_key: missing " + path.string());
     }
-    return heongpu::serializer::load_from_file<heongpu::Galoiskey<Scheme>>(path);
+    std::ifstream ifs(path, std::ios::binary);
+    heongpu::Galoiskey<Scheme> gk;
+    gk.load(ifs);
+    return gk;
 }
 
 heongpu::Ciphertext<Scheme> mlp_encrypt(heongpu::HEContext<Scheme>& ctx,
@@ -140,10 +144,7 @@ void save_batch(const std::vector<heongpu::Ciphertext<Scheme>>& batch, const fs:
     uint64_t count = batch.size();
     out.write(reinterpret_cast<const char*>(&count), sizeof(count));
     for (const auto& ct : batch) {
-        auto data = heongpu::serializer::serialize(ct);
-        uint64_t size = data.size();
-        out.write(reinterpret_cast<const char*>(&size), sizeof(size));
-        out.write(reinterpret_cast<const char*>(data.data()), size);
+        ct.save(out);
     }
 }
 
@@ -157,11 +158,9 @@ void load_batch(std::vector<heongpu::Ciphertext<Scheme>>& batch, const fs::path&
     batch.clear();
     batch.reserve(count);
     for (uint64_t i = 0; i < count; ++i) {
-        uint64_t size;
-        in.read(reinterpret_cast<char*>(&size), sizeof(size));
-        std::vector<uint8_t> buffer(size);
-        in.read(reinterpret_cast<char*>(buffer.data()), size);
-        batch.push_back(heongpu::serializer::deserialize<heongpu::Ciphertext<Scheme>>(buffer));
+        heongpu::Ciphertext<Scheme> ct; // Use default constructor if available
+        ct.load(in);
+        batch.push_back(std::move(ct));
     }
 }
 

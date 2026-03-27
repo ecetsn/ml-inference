@@ -73,11 +73,26 @@ int main(int argc, char* argv[]) {
     fs::create_directories(prms.pubkeydir());
     fs::create_directories(prms.seckeydir());
 
-    heongpu::serializer::save_to_file(*context, prms.pubkeydir()/"cc.bin");
-    heongpu::serializer::save_to_file(public_key, prms.pubkeydir()/"pk.bin");
-    heongpu::serializer::save_to_file(secret_key, prms.seckeydir()/"sk.bin");
-    heongpu::serializer::save_to_file(galois_key, prms.pubkeydir()/"rk.bin");
-    heongpu::serializer::save_to_file(relin_key, prms.pubkeydir()/"mk.bin");
+    {
+        std::ofstream ofs(prms.pubkeydir()/"cc.bin", std::ios::binary);
+        context->save(ofs);
+    }
+    {
+        std::ofstream ofs(prms.pubkeydir()/"pk.bin", std::ios::binary);
+        public_key.save(ofs);
+    }
+    {
+        std::ofstream ofs(prms.seckeydir()/"sk.bin", std::ios::binary);
+        secret_key.save(ofs);
+    }
+    {
+        std::ofstream ofs(prms.pubkeydir()/"rk.bin", std::ios::binary);
+        galois_key.save(ofs);
+    }
+    {
+        std::ofstream ofs(prms.pubkeydir()/"mk.bin", std::ios::binary);
+        relin_key.save(ofs);
+    }
     return 0;
 
 }
