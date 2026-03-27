@@ -51,6 +51,7 @@ harness/mnist/__pycache__/
 virtualenv
 
 # Virtual environments
+venv
 virtualenv
 bmenv
 
@@ -77,4 +78,5 @@ harness/cifar10/cifar10_resnet20_model.pth
 ek.lpk
 submission_remote/__pycache__/
 
-
+#heongpu-submission
+example/
