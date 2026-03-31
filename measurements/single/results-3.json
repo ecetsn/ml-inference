@@ -1,23 +1,19 @@
 {
-  "Timing": {
-    "Test dataset generation": "4.7884s",
-    "Key Generation": "0.9751s",
-    "Encrypted model preprocessing": "0.0037s",
-    "Input generation": "1.8166s",
-    "Input preprocessing": "0.0034s",
-    "Input encryption": "0.0917s",
-    "Encrypted computation": "7.6091s",
-    "Result decryption": "0.0831s",
-    "Result postprocessing": "0.0029s",
-    "Total": "15.3741s"
+  "total_latency_ms": 19.6908,
+  "per_stage": {
+    "Harness: MNIST Test dataset generation": "5.1029s",
+    "Client: Key Generation": "1.4602s",
+    "Server: (Encrypted) model preprocessing": "0.0078s",
+    "Harness: Input generation for MNIST": "2.4375s",
+    "Client: Input preprocessing": "0.0078s",
+    "Client: Input encryption": "0.1176s",
+    "Server: Encrypted ML Inference computation": "10.4425s",
+    "Client: Result decryption": "0.108s",
+    "Client: Result postprocessing": "0.0064s"
   },
-  "Bandwidth": {
-    "Public and evaluation keys": "1.0G",
-    "Encrypted input": "5.0M",
-    "Encrypted results": "1.0M"
-  },
-  "Server Reported": {
-    "Encrypted computation": "6.458s",
-    "Total": "6.458s"
+  "bandwidth": {
+    "Client: Public and evaluation keys": "1.0G",
+    "Client: Encrypted input": "5.0M",
+    "Client: Encrypted results": "1.0M"
   }
 }

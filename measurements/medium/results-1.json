@@ -1,37 +1,33 @@
 {
-  "Timing": {
-    "Test dataset generation": "4.2678s",
-    "Key Generation": "0.966s",
-    "Encrypted model preprocessing": "0.0039s",
-    "Input generation": "2.0854s",
-    "Input preprocessing": "0.1812s",
-    "Input encryption": "29.4465s",
-    "Encrypted computation": "6505.6093s",
-    "Result decryption": "24.6866s",
-    "Result postprocessing": "0.0045s",
-    "Harness: Run inference for harness plaintext model": "1.8956s",
-    "Harness: Run quality check": "0.0005s",
-    "Total": "6569.1473s"
+  "total_latency_ms": 9354.7331,
+  "per_stage": {
+    "Harness: MNIST Test dataset generation": "5.2623s",
+    "Client: Key Generation": "1.6275s",
+    "Server: (Encrypted) model preprocessing": "0.0082s",
+    "Harness: Input generation for MNIST": "3.0319s",
+    "Client: Input preprocessing": "0.3556s",
+    "Client: Input encryption": "39.9632s",
+    "Server: Encrypted ML Inference computation": "9265.8034s",
+    "Client: Result decryption": "35.0602s",
+    "Client: Result postprocessing": "0.0113s",
+    "Harness: Run inference for harness plaintext model": "3.6078s",
+    "Harness: Run quality check": "0.0016s"
   },
-  "Bandwidth": {
-    "Public and evaluation keys": "1.0G",
-    "Encrypted input": "4.9G",
-    "Encrypted results": "1001.6M"
+  "bandwidth": {
+    "Client: Public and evaluation keys": "1.0G",
+    "Client: Encrypted input": "4.9G",
+    "Client: Encrypted results": "1001.6M"
   },
-  "Quality": {
+  "model_quality": {
     "Encrypted model quality": {
-      "correct_predictions": 974,
+      "correct_predictions": 968,
       "total_samples": 1000,
-      "accuracy": 0.974
+      "accuracy": 0.968
     },
     "Harness model quality": {
       "correct_predictions": 981,
       "total_samples": 1000,
       "accuracy": 0.981
     }
-  },
-  "Server Reported": {
-    "Encrypted computation": "6377.964999999999s",
-    "Total": "6377.964999999999s"
   }
 }
